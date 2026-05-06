@@ -1,32 +1,44 @@
 import { ServiceType } from '@/types';
 
 // ============================================================
+// CONSTANTES DE FECHA EN ESPAÑOL
+// Hardcodeadas para evitar bugs de localización en Chrome Android
+// ============================================================
+
+export const DAY_NAMES_SHORT = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+export const DAY_NAMES_LONG  = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+export const MONTH_NAMES     = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+
+// ============================================================
 // DATE UTILS
 // ============================================================
 
 export function getMondayOfWeek(date: Date): Date {
-  const d = new Date(date);
-  const day = d.getDay(); // 0=domingo
+  // Normalize to local midnight to avoid timezone/DST offsets shifting getDay()
+  const d = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+  const day = d.getDay(); // 0=domingo, 1=lunes...
   const diff = day === 0 ? -6 : 1 - day;
   d.setDate(d.getDate() + diff);
-  d.setHours(0, 0, 0, 0);
   return d;
 }
 
-export function formatDate(date: Date, locale = 'es-AR'): string {
-  return date.toLocaleDateString(locale, { weekday: 'long', day: 'numeric', month: 'long' });
+// Ej: "miércoles 6 de mayo"
+export function formatDate(date: Date): string {
+  return `${DAY_NAMES_LONG[date.getDay()]} ${date.getDate()} de ${MONTH_NAMES[date.getMonth()]}`;
 }
 
-export function formatMonth(date: Date, locale = 'es-AR'): string {
-  return date.toLocaleDateString(locale, { month: 'long', year: 'numeric' });
+// Ej: "mayo 2026"
+export function formatMonth(date: Date): string {
+  return `${MONTH_NAMES[date.getMonth()]} ${date.getFullYear()}`;
 }
 
 export function formatDayNum(date: Date): string {
   return date.getDate().toString();
 }
 
-export function formatDayName(date: Date, locale = 'es-AR'): string {
-  return date.toLocaleDateString(locale, { weekday: 'short' });
+// Ej: "Mié"
+export function formatDayName(date: Date): string {
+  return DAY_NAMES_SHORT[date.getDay()];
 }
 
 export function isSameDay(a: Date, b: Date): boolean {
