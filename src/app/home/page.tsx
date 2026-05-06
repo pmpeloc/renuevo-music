@@ -12,6 +12,7 @@ import {
   clearActiveProfileId, getMondayOfWeek, addDays,
 } from '@/lib/utils';
 import Avatar from '@/components/Avatar';
+import PWAInstallButton from '@/components/PWAInstallButton';
 import { LogOut, ChevronRight, Music2 } from 'lucide-react';
 
 // ============================================================
@@ -179,6 +180,7 @@ export default function HomePage() {
           <h1 className="text-xl font-semibold text-gray-900">Alabanzas</h1>
         </div>
         <div className="flex items-center gap-2">
+          <PWAInstallButton />
           <Avatar profile={profile} size="md" />
           <button
             onClick={handleLogout}
