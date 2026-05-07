@@ -24,6 +24,7 @@ import {
   Video,
   Music2,
   Pencil,
+  Share2,
 } from 'lucide-react';
 import { extractYoutubeId } from '@/lib/utils';
 
@@ -49,7 +50,9 @@ export default function ServiceDetailPage() {
 
   const [showAddSong, setShowAddSong] = useState(false);
   const [editingSong, setEditingSong] = useState<ServiceSong | null>(null);
-  const [targetDirectorProfileId, setTargetDirectorProfileId] = useState<string | null>(null);
+  const [targetDirectorProfileId, setTargetDirectorProfileId] = useState<
+    string | null
+  >(null);
   const [showAssignModal, setShowAssignModal] = useState(false);
   const [assigningRole, setAssigningRole] = useState<MemberRole>('coro');
 
@@ -204,19 +207,97 @@ export default function ServiceDetailPage() {
   const dateFormatted = formatDate(serviceDate);
   const label = SERVICE_LABELS[service.type as ServiceType];
 
+  // ── Armar y compartir en WhatsApp ──
+  function shareToWhatsApp() {
+    const lines: string[] = [];
+
+    // Título
+    const titulo =
+      dateFormatted.charAt(0).toUpperCase() + dateFormatted.slice(1);
+    lines.push(`*${label} — ${titulo}*`);
+    lines.push('');
+
+    // Equipo
+    directors.forEach((m) => {
+      lines.push(`*${ROLE_LABELS[m.role]}:* ${m.profile?.name ?? ''}`);
+    });
+    if (coro.length > 0) {
+      const nombres = coro.map((m) => m.profile?.name ?? '').filter(Boolean);
+      const listaCoro =
+        nombres.length === 1
+          ? nombres[0]
+          : nombres.slice(0, -1).join(', ') +
+            ' y ' +
+            nombres[nombres.length - 1];
+      lines.push(`*Coro:* ${listaCoro}`);
+    }
+    lines.push('');
+
+    // Canciones por sección
+    let songCounter = 1;
+    const youtubeLinks: string[] = [];
+
+    sortedSections.forEach(({ member, songs: sectionSongs }) => {
+      if (sortedSections.length > 1) {
+        lines.push(`*Canciones — ${member.profile?.name?.split(' ')[0]}:*`);
+      } else {
+        lines.push(`*Canciones:*`);
+      }
+
+      if (sectionSongs.length === 0) {
+        lines.push('_(sin canciones cargadas)_');
+      } else {
+        sectionSongs.forEach((ss) => {
+          let songLine = `${songCounter}. ${ss.song?.title ?? ''}`;
+          if (ss.key) songLine += ` — *${ss.key}*`;
+          if (ss.starts_in) songLine += ` _(comienza en ${ss.starts_in})_`;
+          if (ss.notes) songLine += `\n   _${ss.notes}_`;
+          lines.push(songLine);
+          if (ss.song?.youtube_url) youtubeLinks.push(ss.song.youtube_url);
+          songCounter++;
+        });
+      }
+      lines.push('');
+    });
+
+    // Referencias YouTube
+    if (youtubeLinks.length > 0) {
+      lines.push('*Referencias:*');
+      youtubeLinks.forEach((url, i) => lines.push(`${i + 1}. ${url}`));
+      lines.push('');
+    }
+
+    // Link a la app
+    const appUrl = `${window.location.origin}/service/${id}`;
+    lines.push(`_Editá el listado: ${appUrl}_`);
+
+    const text = lines.join('\n');
+    window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
+  }
+
   return (
     <div className='flex flex-col h-full bg-white'>
       {/* ── HEADER OSCURO ── */}
       <div
         className='px-4 pt-12 pb-5'
         style={{ background: 'var(--purple-900)' }}>
-        <button
-          onClick={() => router.back()}
-          className='flex items-center gap-1 mb-3'
-          style={{ color: 'var(--purple-200)' }}>
-          <ChevronLeft size={18} />
-          <span className='text-sm capitalize'>{dateFormatted}</span>
-        </button>
+        <div className='flex items-center justify-between mb-3'>
+          <button
+            onClick={() => router.back()}
+            className='flex items-center gap-1'
+            style={{ color: 'var(--purple-200)' }}>
+            <ChevronLeft size={18} />
+            <span className='text-sm capitalize'>{dateFormatted}</span>
+          </button>
+          <button
+            onClick={shareToWhatsApp}
+            className='flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-sm font-medium'
+            style={{ background: '#25D366', color: 'white' }}
+            title='Compartir en WhatsApp'>
+            <Share2 size={14} />
+            <span>Compartir</span>
+          </button>
+        </div>
         <h1 className='text-2xl font-semibold text-white'>{label}</h1>
       </div>
 
@@ -340,14 +421,14 @@ export default function ServiceDetailPage() {
                   </div>
                 </div>
                 <button
-                    onClick={() => {
-                      setTargetDirectorProfileId(member.profile_id);
-                      setShowAddSong(true);
-                    }}
-                    className='flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-white text-xs font-medium'
-                    style={{ background: 'var(--purple-600)' }}>
-                    <Plus size={13} /> Agregar
-                  </button>
+                  onClick={() => {
+                    setTargetDirectorProfileId(member.profile_id);
+                    setShowAddSong(true);
+                  }}
+                  className='flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-white text-xs font-medium'
+                  style={{ background: 'var(--purple-600)' }}>
+                  <Plus size={13} /> Agregar
+                </button>
               </div>
 
               {sectionSongs.length === 0 ? (
@@ -419,19 +500,19 @@ export default function ServiceDetailPage() {
                             </a>
                           )}
                           <button
-                                onClick={() => {
-                                  setTargetDirectorProfileId(member.profile_id);
-                                  setEditingSong(ss);
-                                  setShowAddSong(true);
-                                }}
-                                className='w-8 h-8 rounded-xl bg-gray-100 flex items-center justify-center'>
-                                <Pencil size={13} className='text-gray-400' />
-                              </button>
-                              <button
-                                onClick={() => removeSong(ss.id)}
-                                className='w-8 h-8 rounded-xl bg-red-50 flex items-center justify-center'>
-                                <Trash2 size={13} className='text-red-400' />
-                              </button>
+                            onClick={() => {
+                              setTargetDirectorProfileId(member.profile_id);
+                              setEditingSong(ss);
+                              setShowAddSong(true);
+                            }}
+                            className='w-8 h-8 rounded-xl bg-gray-100 flex items-center justify-center'>
+                            <Pencil size={13} className='text-gray-400' />
+                          </button>
+                          <button
+                            onClick={() => removeSong(ss.id)}
+                            className='w-8 h-8 rounded-xl bg-red-50 flex items-center justify-center'>
+                            <Trash2 size={13} className='text-red-400' />
+                          </button>
                         </div>
                       </div>
                     );
