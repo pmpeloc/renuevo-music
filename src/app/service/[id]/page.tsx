@@ -55,6 +55,8 @@ export default function ServiceDetailPage() {
   >(null);
   const [showAssignModal, setShowAssignModal] = useState(false);
   const [assigningRole, setAssigningRole] = useState<MemberRole>('coro');
+  const [siblingServices, setSiblingServices] = useState<Service[]>([]);
+  const [copying, setCopying] = useState(false);
 
   // ── Cargar datos ──
   const loadData = useCallback(async () => {
@@ -76,6 +78,18 @@ export default function ServiceDetailPage() {
     setMembers(membersRes.data ?? []);
     setSongs(songsRes.data ?? []);
     setAllProfiles(profilesRes.data ?? []);
+
+    // Cargar servicios hermanos (mismo día, distinto id)
+    if (svcRes.data?.date) {
+      const { data: siblings } = await supabase
+        .from('services')
+        .select('*')
+        .eq('date', svcRes.data.date)
+        .neq('id', id)
+        .order('type');
+      setSiblingServices(siblings ?? []);
+    }
+
     setLoading(false);
   }, [id]);
 
@@ -207,6 +221,53 @@ export default function ServiceDetailPage() {
   const dateFormatted = formatDate(serviceDate);
   const label = SERVICE_LABELS[service.type as ServiceType];
 
+  // ── Copiar lista de canciones a servicio hermano ──
+  async function copyListToService(targetServiceId: string) {
+    if (songs.length === 0) return;
+    setCopying(true);
+
+    // Borrar canciones existentes en el destino para evitar duplicados
+    await supabase.from('service_songs').delete().eq('service_id', targetServiceId);
+
+    // Cargar directores del servicio destino (para mapear profile_id por rol)
+    const { data: targetMembers } = await supabase
+      .from('service_members')
+      .select('*')
+      .eq('service_id', targetServiceId);
+
+    const targetMembersByRole = (targetMembers ?? []).reduce<Record<string, string>>(
+      (acc, m) => { acc[m.role] = m.profile_id; return acc; },
+      {}
+    );
+
+    // Mapear cada canción al director correcto en el destino
+    const sourceMemberRoles = members.reduce<Record<string, string>>(
+      (acc, m) => { acc[m.profile_id] = m.role; return acc; },
+      {}
+    );
+
+    const inserts = songs.map((ss, idx) => {
+      const sourceRole = sourceMemberRoles[ss.profile_id] ?? null;
+      const targetProfileId = sourceRole && targetMembersByRole[sourceRole]
+        ? targetMembersByRole[sourceRole]
+        : ss.profile_id; // fallback: mismo profile_id
+
+      return {
+        service_id: targetServiceId,
+        song_id: ss.song_id,
+        profile_id: targetProfileId,
+        key: ss.key,
+        starts_in: ss.starts_in,
+        notes: ss.notes,
+        order_index: idx,
+      };
+    });
+
+    await supabase.from('service_songs').insert(inserts);
+    setCopying(false);
+    await notifyTeam(`${profile?.name} copió la lista de canciones a otro servicio`);
+  }
+
   // ── Armar y compartir en WhatsApp ──
   function shareToWhatsApp() {
     const lines: string[] = [];
@@ -279,7 +340,7 @@ export default function ServiceDetailPage() {
     <div className='flex flex-col h-full bg-white'>
       {/* ── HEADER OSCURO ── */}
       <div
-        className='px-4 pt-12 pb-5'
+        className='px-4 pt-6 pb-5'
         style={{ background: 'var(--purple-900)' }}>
         <div className='flex items-center justify-between mb-3'>
           <button
@@ -522,6 +583,35 @@ export default function ServiceDetailPage() {
             </div>
           );
         })}
+
+        {/* ── COPIAR A SERVICIO HERMANO ── */}
+        {siblingServices.length > 0 && songs.length > 0 && (
+          <div className='mx-4 mt-3 space-y-2'>
+            {siblingServices.map((sib) => (
+              <button
+                key={sib.id}
+                onClick={() => copyListToService(sib.id)}
+                disabled={copying}
+                className='w-full flex items-center justify-center gap-2 py-3 rounded-2xl border-2 text-sm font-medium transition-opacity disabled:opacity-50'
+                style={{ borderColor: 'var(--purple-200)', color: 'var(--purple-600)' }}
+              >
+                {copying ? (
+                  <>
+                    <div className='w-4 h-4 border-2 rounded-full animate-spin' style={{ borderColor: 'var(--purple-200)', borderTopColor: 'var(--purple-600)' }} />
+                    Copiando...
+                  </>
+                ) : (
+                  <>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+                    </svg>
+                    Usar esta lista en {SERVICE_LABELS[sib.type as ServiceType]}
+                  </>
+                )}
+              </button>
+            ))}
+          </div>
+        )}
 
         <div className='h-10' />
       </div>

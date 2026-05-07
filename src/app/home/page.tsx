@@ -204,10 +204,10 @@ export default function HomePage() {
   return (
     <div className='flex flex-col h-full bg-white'>
       {/* ── TOP NAV ── */}
-      <div className='px-4 pt-12 pb-2 flex items-center justify-between'>
+      <div className='px-4 pt-6 pb-2 flex items-center justify-between'>
         <div>
           <p className='text-xs text-gray-400'>Hola, {firstNameShort} 👋</p>
-          <h1 className='text-xl font-semibold text-gray-900'>Alabanzas</h1>
+          <h1 className='text-xl font-semibold text-gray-900'>Listado</h1>
         </div>
         <div className='flex items-center gap-2'>
           <PWAInstallButton />
