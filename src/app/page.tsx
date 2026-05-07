@@ -152,7 +152,7 @@ export default function ProfileSelectionPage() {
               <button
                 onClick={() => setShowCreate(true)}
                 className='w-full flex items-center gap-4 p-4 rounded-2xl border border-dashed border-gray-200 hover:border-purple-300 hover:bg-purple-50 transition-colors text-left mt-2'>
-                <div className='w-14 h-14 rounded-full bg-gray-100 flex items-center justify-center flex-shrink-0'>
+                <div className='w-14 h-14 rounded-full bg-gray-100 flex items-center justify-center shrink-0'>
                   <Plus size={22} className='text-gray-400' />
                 </div>
                 <p className='font-medium text-gray-500'>Crear nuevo perfil</p>
