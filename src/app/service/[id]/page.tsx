@@ -49,6 +49,7 @@ export default function ServiceDetailPage() {
 
   const [showAddSong, setShowAddSong] = useState(false);
   const [editingSong, setEditingSong] = useState<ServiceSong | null>(null);
+  const [targetDirectorProfileId, setTargetDirectorProfileId] = useState<string | null>(null);
   const [showAssignModal, setShowAssignModal] = useState(false);
   const [assigningRole, setAssigningRole] = useState<MemberRole>('coro');
 
@@ -338,14 +339,15 @@ export default function ServiceDetailPage() {
                     <p className='text-xs text-gray-400'>{roleLabel}</p>
                   </div>
                 </div>
-                {isMe && (
-                  <button
-                    onClick={() => setShowAddSong(true)}
+                <button
+                    onClick={() => {
+                      setTargetDirectorProfileId(member.profile_id);
+                      setShowAddSong(true);
+                    }}
                     className='flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-white text-xs font-medium'
                     style={{ background: 'var(--purple-600)' }}>
                     <Plus size={13} /> Agregar
                   </button>
-                )}
               </div>
 
               {sectionSongs.length === 0 ? (
@@ -416,10 +418,9 @@ export default function ServiceDetailPage() {
                               <Video size={14} className='text-red-500' />
                             </a>
                           )}
-                          {isMe && (
-                            <>
-                              <button
+                          <button
                                 onClick={() => {
+                                  setTargetDirectorProfileId(member.profile_id);
                                   setEditingSong(ss);
                                   setShowAddSong(true);
                                 }}
@@ -431,8 +432,6 @@ export default function ServiceDetailPage() {
                                 className='w-8 h-8 rounded-xl bg-red-50 flex items-center justify-center'>
                                 <Trash2 size={13} className='text-red-400' />
                               </button>
-                            </>
-                          )}
                         </div>
                       </div>
                     );
@@ -511,11 +510,12 @@ export default function ServiceDetailPage() {
       {showAddSong && profile && (
         <AddSongModal
           serviceId={id}
-          profileId={profile.id}
+          profileId={targetDirectorProfileId ?? profile.id}
           editingSong={editingSong}
           onClose={() => {
             setShowAddSong(false);
             setEditingSong(null);
+            setTargetDirectorProfileId(null);
           }}
           onSaved={(ss) => {
             setSongs((prev) =>
@@ -523,7 +523,7 @@ export default function ServiceDetailPage() {
                 ? prev.map((s) => (s.id === ss.id ? ss : s))
                 : [...prev, ss],
             );
-            notifyTeam(`${profile.name} actualizó su lista de canciones`);
+            notifyTeam(`${profile.name} actualizó la lista de canciones`);
           }}
         />
       )}
