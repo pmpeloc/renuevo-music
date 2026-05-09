@@ -10,6 +10,7 @@ import {
 } from '@/lib/utils';
 import Avatar from '@/components/Avatar';
 import ServiceWorkerRegister from '@/components/ServiceWorkerRegister';
+import Image from 'next/image';
 import { Plus, X } from 'lucide-react';
 
 export default function ProfileSelectionPage() {
@@ -90,24 +91,21 @@ export default function ProfileSelectionPage() {
         style={{ background: 'var(--purple-900)' }}>
         {/* Header */}
         <div className='pt-16 pb-8 px-6 text-center'>
-          <div
-            className='w-16 h-16 rounded-2xl mx-auto mb-4 flex items-center justify-center'
-            style={{ background: 'var(--purple-600)' }}>
-            <svg width='32' height='32' viewBox='0 0 32 32' fill='none'>
-              <path
-                d='M8 24V8L26 4V20'
-                stroke='white'
-                strokeWidth='2'
-                strokeLinecap='round'
-                strokeLinejoin='round'
-              />
-              <circle cx='6' cy='24' r='4' stroke='white' strokeWidth='2' />
-              <circle cx='24' cy='20' r='4' stroke='white' strokeWidth='2' />
-            </svg>
+          <div className='w-24 h-24 rounded-3xl mx-auto mb-4 overflow-hidden'>
+            <Image
+              src='/renuevo-music-2.png'
+              alt='Renuevo Music'
+              width={96}
+              height={96}
+              className='w-full h-full object-cover'
+              priority
+            />
           </div>
-          <h1 className='text-2xl font-semibold text-white mb-1'>Renuevo</h1>
+          <h1 className='text-2xl font-semibold text-white mb-1'>
+            Renuevo Music
+          </h1>
           <p style={{ color: 'var(--purple-200)' }} className='text-sm'>
-            ¿Quién sos?
+            Selecciona tu perfil para continuar
           </p>
         </div>
 
@@ -151,7 +149,7 @@ export default function ProfileSelectionPage() {
 
               <button
                 onClick={() => setShowCreate(true)}
-                className='w-full flex items-center gap-4 p-4 rounded-2xl border border-dashed border-gray-200 hover:border-purple-300 hover:bg-purple-50 transition-colors text-left mt-2'>
+                className='w-full flex items-center gap-4 p-4 rounded-2xl border border-dashed border-gray-200 hover:border-teal-300 hover:bg-teal-50 transition-colors text-left mt-2'>
                 <div className='w-14 h-14 rounded-full bg-gray-100 flex items-center justify-center shrink-0'>
                   <Plus size={22} className='text-gray-400' />
                 </div>
@@ -215,7 +213,7 @@ export default function ProfileSelectionPage() {
                 value={newName}
                 onChange={(e) => setNewName(e.target.value)}
                 placeholder='Ej: Juan García'
-                className='w-full px-4 py-3 rounded-xl border border-gray-200 text-base focus:outline-none focus:border-purple-400 focus:ring-2 focus:ring-purple-100'
+                className='w-full px-4 py-3 rounded-xl border border-gray-200 text-base focus:outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-100'
                 autoFocus
                 onKeyDown={(e) => e.key === 'Enter' && createProfile()}
               />

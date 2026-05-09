@@ -169,11 +169,11 @@ export default function HomePage() {
   }
 
   const STATUS_CONFIG = {
-    complete: { label: 'Completo', bg: 'bg-green-100', text: 'text-green-800' },
+    complete: { label: 'Completo', bg: 'bg-teal-100', text: 'text-teal-800' },
     no_songs: {
       label: 'Sin canciones',
-      bg: 'bg-amber-100',
-      text: 'text-amber-800',
+      bg: 'bg-teal-100',
+      text: 'text-teal-800',
     },
     no_director: {
       label: 'Sin director',
@@ -260,7 +260,7 @@ export default function HomePage() {
                 {dayName.replace('.', '')}
               </span>
               <span
-                className={`text-base font-semibold mt-0.5 ${isToday && !isSelected ? 'text-purple-600' : ''}`}>
+                className={`text-base font-semibold mt-0.5 ${isToday && !isSelected ? 'text-teal-700' : ''}`}>
                 {dayNum}
               </span>
               {hasEv && (

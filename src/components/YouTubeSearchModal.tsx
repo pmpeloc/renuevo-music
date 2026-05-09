@@ -94,7 +94,7 @@ export default function YouTubeSearchModal({
                 onChange={(e) => setQuery(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && doSearch(query)}
                 placeholder='Buscar video...'
-                className='w-full pl-9 pr-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-purple-400 focus:ring-2 focus:ring-purple-100'
+                className='w-full pl-9 pr-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-100'
               />
             </div>
             <button
@@ -132,7 +132,7 @@ export default function YouTubeSearchModal({
               <button
                 key={item.id.videoId}
                 onClick={() => handleSelect(item.id.videoId)}
-                className='w-full flex items-center gap-3 p-2.5 rounded-2xl hover:bg-purple-50 active:bg-purple-100 transition-colors text-left'>
+                className='w-full flex items-center gap-3 p-2.5 rounded-2xl hover:bg-teal-50 active:bg-teal-100 transition-colors text-left'>
                 {/* Miniatura */}
                 <div
                   className='relative shrink-0 rounded-xl overflow-hidden'

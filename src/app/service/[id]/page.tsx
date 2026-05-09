@@ -57,6 +57,8 @@ export default function ServiceDetailPage() {
   const [assigningRole, setAssigningRole] = useState<MemberRole>('coro');
   const [siblingServices, setSiblingServices] = useState<Service[]>([]);
   const [copying, setCopying] = useState(false);
+  const [confirmCopyTarget, setConfirmCopyTarget] = useState<Service | null>(null);
+  const [confirmWord, setConfirmWord] = useState('');
 
   // ── Cargar datos ──
   const loadData = useCallback(async () => {
@@ -590,7 +592,7 @@ export default function ServiceDetailPage() {
             {siblingServices.map((sib) => (
               <button
                 key={sib.id}
-                onClick={() => copyListToService(sib.id)}
+                onClick={() => { setConfirmCopyTarget(sib); setConfirmWord(''); }}
                 disabled={copying}
                 className='w-full flex items-center justify-center gap-2 py-3 rounded-2xl border-2 text-sm font-medium transition-opacity disabled:opacity-50'
                 style={{ borderColor: 'var(--purple-200)', color: 'var(--purple-600)' }}
@@ -615,6 +617,72 @@ export default function ServiceDetailPage() {
 
         <div className='h-10' />
       </div>
+
+      {/* ── MODAL CONFIRMAR COPIA ── */}
+      {confirmCopyTarget && (
+        <div
+          className='fixed inset-0 z-50 flex flex-col justify-end'
+          style={{ background: 'rgba(0,0,0,0.6)' }}
+          onClick={(e) => { if (e.target === e.currentTarget) { setConfirmCopyTarget(null); setConfirmWord(''); } }}>
+          <div className='bg-white rounded-t-3xl p-5 slide-up'>
+            <div className='w-10 h-1 bg-gray-200 rounded-full mx-auto mb-5' />
+
+            {/* Ícono de advertencia */}
+            <div className='w-12 h-12 rounded-2xl mx-auto mb-4 flex items-center justify-center' style={{ background: '#fff3e0' }}>
+              <svg width='24' height='24' viewBox='0 0 24 24' fill='none'>
+                <path d='M12 9v4M12 17h.01M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z' stroke='#f59e0b' strokeWidth='2' strokeLinecap='round' strokeLinejoin='round'/>
+              </svg>
+            </div>
+
+            <h3 className='text-base font-semibold text-gray-900 text-center mb-1'>
+              Confirmar acción
+            </h3>
+            <p className='text-sm text-gray-500 text-center mb-4'>
+              Estás a punto de reemplazar toda la lista de canciones de{' '}
+              <strong className='text-gray-800'>{SERVICE_LABELS[confirmCopyTarget.type as ServiceType]}</strong>{' '}
+              con las {songs.length} canciones de este servicio.{' '}
+              <span className='text-red-500 font-medium'>Esta acción no se puede deshacer.</span>
+            </p>
+
+            <p className='text-xs text-gray-400 text-center mb-2'>
+              Escribí <strong className='text-gray-700'>reemplazar</strong> para confirmar
+            </p>
+            <input
+              type='text'
+              value={confirmWord}
+              onChange={(e) => setConfirmWord(e.target.value.toLowerCase())}
+              placeholder='reemplazar'
+              autoFocus
+              className='w-full px-4 py-3 rounded-xl border text-sm text-center font-medium focus:outline-none mb-4'
+              style={{
+                borderColor: confirmWord === 'reemplazar' ? 'var(--purple-600)' : '#e5e7eb',
+                color: confirmWord === 'reemplazar' ? 'var(--purple-600)' : '#374151',
+                background: confirmWord === 'reemplazar' ? 'var(--purple-50)' : 'white',
+              }}
+            />
+
+            <div className='flex gap-3'>
+              <button
+                onClick={() => { setConfirmCopyTarget(null); setConfirmWord(''); }}
+                className='flex-1 py-3 rounded-2xl border border-gray-200 text-sm font-medium text-gray-600'>
+                Cancelar
+              </button>
+              <button
+                disabled={confirmWord !== 'reemplazar'}
+                onClick={() => {
+                  const targetId = confirmCopyTarget.id;
+                  setConfirmCopyTarget(null);
+                  setConfirmWord('');
+                  copyListToService(targetId);
+                }}
+                className='flex-1 py-3 rounded-2xl text-white text-sm font-semibold transition-opacity disabled:opacity-30'
+                style={{ background: 'var(--purple-600)' }}>
+                Confirmar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ── MODAL ASIGNAR ── */}
       {showAssignModal && (

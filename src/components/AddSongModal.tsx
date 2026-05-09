@@ -38,6 +38,10 @@ export default function AddSongModal({
   // YouTube de canción existente (catálogo o edición)
   const [youtubeUrl, setYoutubeUrl] = useState('');
 
+  // Campos editables de título/artista en modo edición
+  const [editTitle, setEditTitle] = useState('');
+  const [editArtist, setEditArtist] = useState('');
+
   // Tono
   const [selectedKey, setSelectedKey] = useState<MusicalKey | null>(null);
   const [startsIn, setStartsIn] = useState<MusicalKey | null>(null);
@@ -57,6 +61,8 @@ export default function AddSongModal({
       if (editingSong.song) {
         setSelectedSong(editingSong.song);
         setYoutubeUrl(editingSong.song.youtube_url ?? '');
+        setEditTitle(editingSong.song.title ?? '');
+        setEditArtist(editingSong.song.artist ?? '');
       }
     }
   }, [editingSong]);
@@ -93,7 +99,7 @@ export default function AddSongModal({
       .select('*')
       .eq('profile_id', profileId)
       .eq('song_id', selectedSong.id)
-      .single()
+      .maybeSingle()
       .then(({ data }) => {
         setKeyHistory(data);
         // Pre-setear tono del historial si no hay ya un valor
@@ -147,12 +153,22 @@ export default function AddSongModal({
       return;
     }
 
-    // Actualizar youtube_url en el catálogo si cambió
+    // Actualizar campos del catálogo si cambiaron (título, artista, youtube)
     const cleanUrl = youtubeUrl.trim() || null;
-    if (cleanUrl !== (song.youtube_url ?? null)) {
+    const cleanTitle = editingSong ? editTitle.trim() : song.title;
+    const cleanArtist = editingSong ? (editArtist.trim() || null) : (song.artist ?? null);
+    const needsCatalogUpdate =
+      cleanUrl !== (song.youtube_url ?? null) ||
+      (editingSong && (cleanTitle !== song.title || cleanArtist !== (song.artist ?? null)));
+    if (needsCatalogUpdate) {
+      const updatePayload: Record<string, string | null> = { youtube_url: cleanUrl };
+      if (editingSong) {
+        updatePayload.title = cleanTitle || song.title;
+        updatePayload.artist = cleanArtist;
+      }
       await supabase
         .from('songs')
-        .update({ youtube_url: cleanUrl })
+        .update(updatePayload)
         .eq('id', song.id);
     }
 
@@ -249,7 +265,7 @@ export default function AddSongModal({
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     placeholder='Buscar canción...'
-                    className='w-full pl-9 pr-4 py-3 rounded-xl border border-gray-200 text-base focus:outline-none focus:border-purple-400 focus:ring-2 focus:ring-purple-100'
+                    className='w-full pl-9 pr-4 py-3 rounded-xl border border-gray-200 text-base focus:outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-100'
                   />
                   {searching && (
                     <div className='absolute right-3 top-1/2 -translate-y-1/2'>
@@ -269,7 +285,7 @@ export default function AddSongModal({
                       <button
                         key={song.id}
                         onClick={() => selectFromCatalog(song)}
-                        className='w-full text-left px-4 py-3 hover:bg-purple-50 border-b border-gray-50 last:border-0 flex items-center gap-3'>
+                        className='w-full text-left px-4 py-3 hover:bg-teal-50 border-b border-gray-50 last:border-0 flex items-center gap-3'>
                         <div>
                           <p className='font-medium text-sm text-gray-900'>
                             {song.title}
@@ -322,17 +338,40 @@ export default function AddSongModal({
                     />
                   )}
                   <div className='flex-1 min-w-0'>
-                    <p
-                      className='font-semibold text-sm'
-                      style={{ color: 'var(--purple-800)' }}>
-                      {selectedSong.title}
-                    </p>
-                    {selectedSong.artist && (
-                      <p
-                        className='text-xs'
-                        style={{ color: 'var(--purple-600)' }}>
-                        {selectedSong.artist}
-                      </p>
+                    {editingSong ? (
+                      <div className='space-y-1'>
+                        <input
+                          type='text'
+                          value={editTitle}
+                          onChange={(e) => setEditTitle(e.target.value)}
+                          placeholder='Título de la canción'
+                          className='w-full px-2 py-1 rounded-lg border border-gray-200 text-sm font-semibold focus:outline-none focus:border-teal-600'
+                          style={{ color: 'var(--purple-800)' }}
+                        />
+                        <input
+                          type='text'
+                          value={editArtist}
+                          onChange={(e) => setEditArtist(e.target.value)}
+                          placeholder='Artista (opcional)'
+                          className='w-full px-2 py-1 rounded-lg border border-gray-200 text-xs focus:outline-none focus:border-teal-600'
+                          style={{ color: 'var(--purple-600)' }}
+                        />
+                      </div>
+                    ) : (
+                      <>
+                        <p
+                          className='font-semibold text-sm'
+                          style={{ color: 'var(--purple-800)' }}>
+                          {selectedSong.title}
+                        </p>
+                        {selectedSong.artist && (
+                          <p
+                            className='text-xs'
+                            style={{ color: 'var(--purple-600)' }}>
+                            {selectedSong.artist}
+                          </p>
+                        )}
+                      </>
                     )}
                   </div>
                   {!editingSong && (
@@ -358,7 +397,7 @@ export default function AddSongModal({
                       value={youtubeUrl}
                       onChange={(e) => setYoutubeUrl(e.target.value)}
                       placeholder='https://youtube.com/watch?v=...'
-                      className='flex-1 px-4 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-purple-400 focus:ring-2 focus:ring-purple-100'
+                      className='flex-1 px-4 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-100'
                     />
                     <button
                       type='button'
@@ -401,7 +440,7 @@ export default function AddSongModal({
                     value={newTitle}
                     onChange={(e) => setNewTitle(e.target.value)}
                     placeholder='Nombre de la canción'
-                    className='w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-purple-400 focus:ring-2 focus:ring-purple-100'
+                    className='w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-100'
                   />
                 </div>
                 <div>
@@ -413,7 +452,7 @@ export default function AddSongModal({
                     value={newArtist}
                     onChange={(e) => setNewArtist(e.target.value)}
                     placeholder='Ej: Elevation Worship'
-                    className='w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-purple-400 focus:ring-2 focus:ring-purple-100'
+                    className='w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-100'
                   />
                 </div>
                 <div>
@@ -426,7 +465,7 @@ export default function AddSongModal({
                       value={newYoutube}
                       onChange={(e) => setNewYoutube(e.target.value)}
                       placeholder='https://youtube.com/watch?v=...'
-                      className='flex-1 px-4 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-purple-400 focus:ring-2 focus:ring-purple-100'
+                      className='flex-1 px-4 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-100'
                     />
                     <button
                       type='button'
@@ -497,7 +536,7 @@ export default function AddSongModal({
                     value={notes}
                     onChange={(e) => setNotes(e.target.value)}
                     placeholder='Ej: tempo lento, a cappella al inicio...'
-                    className='w-full px-4 py-3 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-purple-400 focus:ring-2 focus:ring-purple-100'
+                    className='w-full px-4 py-3 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-100'
                   />
                 </div>
               </div>

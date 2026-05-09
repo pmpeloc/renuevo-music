@@ -123,12 +123,12 @@ export const ROLE_LABELS: Record<MemberRole, string> = {
 };
 
 export const AVATAR_COLORS: Record<AvatarColor, { bg: string; text: string }> = {
-  purple: { bg: 'bg-purple-100', text: 'text-purple-800' },
+  purple: { bg: 'bg-teal-100', text: 'text-green-900' },
   teal:   { bg: 'bg-teal-100',   text: 'text-teal-800'   },
   coral:  { bg: 'bg-orange-100', text: 'text-orange-800' },
   blue:   { bg: 'bg-blue-100',   text: 'text-blue-800'   },
   pink:   { bg: 'bg-pink-100',   text: 'text-pink-800'   },
-  amber:  { bg: 'bg-amber-100',  text: 'text-amber-800'  },
+  amber:  { bg: 'bg-teal-100',  text: 'text-teal-800'  },
 };
 
 export const AVATAR_COLOR_LIST: AvatarColor[] = ['purple', 'teal', 'coral', 'blue', 'pink', 'amber'];

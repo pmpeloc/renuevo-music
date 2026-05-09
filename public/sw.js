@@ -1,39 +1,58 @@
 // ============================================================
 // SERVICE WORKER — Renuevo Music App
-// Maneja push notifications y caché offline básico
+// Estrategia: network-first + auto-reload al actualizar
 // ============================================================
 
-const CACHE_NAME = 'renuevo-v1';
+const CACHE_NAME = 'renuevo-v3';
 const OFFLINE_URL = '/offline';
 
-// Instalación: cachear recursos esenciales
+// Instalación: activar inmediatamente sin esperar tabs cerradas
 self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(['/', '/offline']);
-    })
+    caches.open(CACHE_NAME).then((cache) => cache.addAll(['/offline']))
   );
+  // Forzar activación inmediata del nuevo SW sin esperar
   self.skipWaiting();
 });
 
-// Activación: limpiar caches viejos
+// Activación: limpiar caches viejos y tomar control de todos los clientes
 self.addEventListener('activate', (event) => {
   event.waitUntil(
-    caches.keys().then((keys) =>
-      Promise.all(keys.filter((k) => k !== CACHE_NAME).map((k) => caches.delete(k)))
-    )
+    caches.keys()
+      .then((keys) =>
+        Promise.all(keys.filter((k) => k !== CACHE_NAME).map((k) => caches.delete(k)))
+      )
+      .then(() => self.clients.claim())  // tomar control inmediato
+      .then(() => {
+        // Avisar a todas las pestañas abiertas que hay una versión nueva → recargan
+        return self.clients.matchAll({ type: 'window', includeUncontrolled: true });
+      })
+      .then((clients) => {
+        clients.forEach((client) => client.postMessage({ type: 'SW_UPDATED' }));
+      })
   );
-  self.clients.claim();
 });
 
-// Fetch: solo interceptar requests del mismo origen (no APIs externas como Supabase)
+// Fetch: network-first para el mismo origen, dejar pasar lo externo
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
   const url = new URL(event.request.url);
-  // Dejar pasar todo lo que no sea del mismo origen (Supabase, YouTube, etc.)
+
+  // Dejar pasar Supabase, YouTube, APIs externas sin tocar
   if (url.origin !== self.location.origin) return;
+
+  // Para navegación (HTML), siempre red primero — offline muestra página vacante
   event.respondWith(
-    fetch(event.request).catch(() => caches.match(event.request))
+    fetch(event.request)
+      .then((response) => {
+        // Guardar en caché solo respuestas válidas de mismo origen
+        if (response.ok) {
+          const clone = response.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
+        }
+        return response;
+      })
+      .catch(() => caches.match(event.request))
   );
 });
 
