@@ -5,6 +5,7 @@ import { supabase } from '@/lib/supabase';
 import { Song, Service, ServiceMember, ServiceSong } from '@/types';
 import AppShell from '@/components/AppShell';
 import Avatar from '@/components/Avatar';
+import { useLoading } from '@/context/LoadingContext';
 import {
   BarChart3,
   TrendingUp,
@@ -99,6 +100,7 @@ function Bar({
 // ─── Page ───────────────────────────────────────────────────────────────────
 
 export default function MetricasPage() {
+  const { withLoader } = useLoading();
   const [songs, setSongs] = useState<Song[]>([]);
   const [services, setServices] = useState<Service[]>([]);
   const [serviceSongs, setServiceSongs] = useState<
@@ -110,7 +112,7 @@ export default function MetricasPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    async function load() {
+    withLoader(async () => {
       setLoading(true);
       const [songsRes, servicesRes, ssRes, smRes] = await Promise.all([
         supabase.from('songs').select('*'),
@@ -128,8 +130,8 @@ export default function MetricasPage() {
       setServiceSongs(ssRes.data ?? []);
       setServiceMembers(smRes.data ?? []);
       setLoading(false);
-    }
-    load();
+    });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // ── 1. Song rankings ──────────────────────────────────────────────────────

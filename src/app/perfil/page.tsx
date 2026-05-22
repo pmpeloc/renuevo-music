@@ -18,6 +18,7 @@ import {
 } from '@/types';
 import { getInitials, clearActiveProfileId } from '@/lib/utils';
 import AppShell from '@/components/AppShell';
+import { useLoading } from '@/context/LoadingContext';
 import {
   Camera,
   Edit2,
@@ -93,6 +94,7 @@ export default function PerfilPage() {
   const router = useRouter();
   const { profile, loading: profileLoading } = useActiveProfile();
   const { installState, triggerInstall } = usePWAInstall();
+  const { withLoader, showLoader } = useLoading();
 
   // ── Editable state ──
   const [editingName, setEditingName] = useState(false);
@@ -204,40 +206,42 @@ export default function PerfilPage() {
     const file = e.target.files?.[0];
     if (!file || !profile) return;
 
-    // Preview
+    // Instant preview while uploading
     const objectUrl = URL.createObjectURL(file);
     setPreviewUrl(objectUrl);
-    setUploadingPhoto(true);
 
-    try {
-      const ext = file.name.split('.').pop() ?? 'jpg';
-      const path = `${profile.id}/avatar.${ext}`;
+    await withLoader(async () => {
+      setUploadingPhoto(true);
+      try {
+        const ext = file.name.split('.').pop() ?? 'jpg';
+        const path = `${profile.id}/avatar.${ext}`;
 
-      const { error: upErr } = await supabase.storage
-        .from('avatars')
-        .upload(path, file, { upsert: true, contentType: file.type });
+        const { error: upErr } = await supabase.storage
+          .from('avatars')
+          .upload(path, file, { upsert: true, contentType: file.type });
 
-      if (upErr) throw upErr;
+        if (upErr) throw upErr;
 
-      const { data: urlData } = supabase.storage
-        .from('avatars')
-        .getPublicUrl(path);
-      const photoUrl = urlData.publicUrl + `?t=${Date.now()}`;
+        const { data: urlData } = supabase.storage
+          .from('avatars')
+          .getPublicUrl(path);
+        const photoUrl = urlData.publicUrl + `?t=${Date.now()}`;
 
-      await supabase
-        .from('profiles')
-        .update({ photo_url: photoUrl })
-        .eq('id', profile.id);
-      setPreviewUrl(photoUrl);
-    } catch (err) {
-      console.error('Upload error:', err);
-      setPreviewUrl(null);
-      alert(
-        'Error al subir la foto. Verificá que el bucket "avatars" esté configurado en Supabase.',
-      );
-    } finally {
-      setUploadingPhoto(false);
-    }
+        await supabase
+          .from('profiles')
+          .update({ photo_url: photoUrl })
+          .eq('id', profile.id);
+        setPreviewUrl(photoUrl);
+      } catch (err) {
+        console.error('Upload error:', err);
+        setPreviewUrl(null);
+        alert(
+          'Error al subir la foto. Verificá que el bucket "avatars" esté configurado en Supabase.',
+        );
+      } finally {
+        setUploadingPhoto(false);
+      }
+    });
   }
 
   // ── Remove photo ──
@@ -564,7 +568,7 @@ export default function PerfilPage() {
                   return (
                     <button
                       key={item.service_id}
-                      onClick={() => router.push(`/service/${item.service_id}`)}
+                      onClick={() => { showLoader(); router.push(`/service/${item.service_id}`); }}
                       className='w-full flex items-center gap-3 py-2.5 px-1 rounded-xl hover:bg-gray-50 transition-colors text-left'>
                       <div
                         className='w-8 h-8 rounded-xl flex items-center justify-center shrink-0'

@@ -4,21 +4,35 @@ import { useActiveProfile } from '@/hooks/useActiveProfile';
 import Avatar from './Avatar';
 import Image from 'next/image';
 import { Home, Music2, BarChart3, User } from 'lucide-react';
-import { clearActiveProfileId } from '@/lib/utils';
 
 interface AppShellProps {
   children: React.ReactNode;
 }
 
 const NAV_ITEMS = [
-  { label: 'Inicio',    icon: Home,       href: '/home',      matchPrefixes: ['/home', '/service'] },
-  { label: 'Canciones', icon: Music2,      href: '/canciones', matchPrefixes: ['/canciones'] },
-  { label: 'Métricas',  icon: BarChart3,   href: '/metricas',  matchPrefixes: ['/metricas'] },
-  { label: 'Perfil',    icon: User,        href: '/perfil',    matchPrefixes: ['/perfil'] },
+  {
+    label: 'Inicio',
+    icon: Home,
+    href: '/home',
+    matchPrefixes: ['/home', '/service'],
+  },
+  {
+    label: 'Canciones',
+    icon: Music2,
+    href: '/canciones',
+    matchPrefixes: ['/canciones'],
+  },
+  {
+    label: 'Métricas',
+    icon: BarChart3,
+    href: '/metricas',
+    matchPrefixes: ['/metricas'],
+  },
+  { label: 'Perfil', icon: User, href: '/perfil', matchPrefixes: ['/perfil'] },
 ] as const;
 
 export default function AppShell({ children }: AppShellProps) {
-  const router   = useRouter();
+  const router = useRouter();
   const pathname = usePathname();
   const { profile } = useActiveProfile();
 
@@ -32,18 +46,27 @@ export default function AppShell({ children }: AppShellProps) {
       <aside
         className='hidden lg:flex flex-col w-56 xl:w-60 shrink-0'
         style={{ background: 'var(--purple-900)' }}>
-
         {/* Logo */}
         <div
           className='flex items-center gap-3 px-5 py-5'
           style={{ borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
           <div className='w-10 h-10 rounded-2xl overflow-hidden shrink-0'>
-            <Image src='/renuevo-music-2.png' alt='Renuevo Music' width={40} height={40}
-              className='w-full h-full object-cover' priority />
+            <Image
+              src='/renuevo-music-2.png'
+              alt='Renuevo Music'
+              width={40}
+              height={40}
+              className='w-full h-full object-cover'
+              priority
+            />
           </div>
           <div>
-            <p className='text-sm font-semibold text-white leading-tight'>Renuevo</p>
-            <p className='text-xs' style={{ color: 'var(--purple-200)' }}>Music</p>
+            <p className='text-sm font-semibold text-white leading-tight'>
+              Renuevo
+            </p>
+            <p className='text-xs' style={{ color: 'var(--purple-200)' }}>
+              Music
+            </p>
           </div>
         </div>
 
@@ -79,11 +102,18 @@ export default function AppShell({ children }: AppShellProps) {
           <button
             onClick={() => router.push('/perfil')}
             className='flex items-center gap-3 px-4 py-4 transition-colors'
-            style={{ borderTop: '1px solid rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.7)' }}>
+            style={{
+              borderTop: '1px solid rgba(255,255,255,0.08)',
+              color: 'rgba(255,255,255,0.7)',
+            }}>
             <Avatar profile={profile} size='sm' />
             <div className='flex-1 min-w-0 text-left'>
-              <p className='text-xs font-semibold text-white truncate'>{profile.name}</p>
-              <p className='text-[10px] truncate' style={{ color: 'var(--purple-200)' }}>
+              <p className='text-xs font-semibold text-white truncate'>
+                {profile.name}
+              </p>
+              <p
+                className='text-[10px] truncate'
+                style={{ color: 'var(--purple-200)' }}>
                 {profile.instrument ?? 'Ver perfil'}
               </p>
             </div>
@@ -94,9 +124,7 @@ export default function AppShell({ children }: AppShellProps) {
       {/* ── CONTENIDO + BOTTOM NAV (mobile) ── */}
       <div className='flex-1 flex flex-col min-w-0 overflow-hidden'>
         {/* Content area */}
-        <div className='flex-1 min-h-0 overflow-hidden'>
-          {children}
-        </div>
+        <div className='flex-1 min-h-0 overflow-hidden'>{children}</div>
 
         {/* Bottom Nav — mobile only */}
         <nav

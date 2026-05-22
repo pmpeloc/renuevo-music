@@ -24,6 +24,7 @@ import {
 import Avatar from '@/components/Avatar';
 import AppShell from '@/components/AppShell';
 import { ChevronRight, Music2, Users } from 'lucide-react';
+import { useLoading } from '@/context/LoadingContext';
 
 interface ServiceWithStatus {
   service: Service;
@@ -34,6 +35,7 @@ interface ServiceWithStatus {
 export default function HomePage() {
   const router = useRouter();
   const { profile, loading: profileLoading } = useActiveProfile();
+  const { withLoader, showLoader } = useLoading();
 
   // Registrar suscripción push cuando el perfil está cargado
   usePushSubscription(profile?.id);
@@ -60,48 +62,55 @@ export default function HomePage() {
     });
   }, []);
 
-  const loadServicesForDay = useCallback(async (date: Date) => {
-    setLoadingServices(true);
-    const dateStr = date.toISOString().split('T')[0];
+  const loadServicesForDay = useCallback(
+    async (date: Date) => {
+      await withLoader(async () => {
+        setLoadingServices(true);
+        const dateStr = date.toISOString().split('T')[0];
 
-    const { data: services } = await supabase
-      .from('services')
-      .select('*')
-      .eq('date', dateStr)
-      .order('type');
+        const { data: services } = await supabase
+          .from('services')
+          .select('*')
+          .eq('date', dateStr)
+          .order('type');
 
-    if (!services || services.length === 0) {
-      setServicesForDay([]);
-      setLoadingServices(false);
-      return;
-    }
+        if (!services || services.length === 0) {
+          setServicesForDay([]);
+          setLoadingServices(false);
+          return;
+        }
 
-    const serviceIds = services.map((s: Service) => s.id);
+        const serviceIds = services.map((s: Service) => s.id);
 
-    const [membersRes, songsRes] = await Promise.all([
-      supabase
-        .from('service_members')
-        .select('*, profile:profiles(*)')
-        .in('service_id', serviceIds),
-      supabase
-        .from('service_songs')
-        .select('*, song:songs(*), profile:profiles(*)')
-        .in('service_id', serviceIds)
-        .order('order_index'),
-    ]);
+        const [membersRes, songsRes] = await Promise.all([
+          supabase
+            .from('service_members')
+            .select('*, profile:profiles(*)')
+            .in('service_id', serviceIds),
+          supabase
+            .from('service_songs')
+            .select('*, song:songs(*), profile:profiles(*)')
+            .in('service_id', serviceIds)
+            .order('order_index'),
+        ]);
 
-    const members: ServiceMember[] = membersRes.data ?? [];
-    const songs: ServiceSong[] = songsRes.data ?? [];
+        const members: ServiceMember[] = membersRes.data ?? [];
+        const songs: ServiceSong[] = songsRes.data ?? [];
 
-    const result: ServiceWithStatus[] = services.map((service: Service) => ({
-      service,
-      members: members.filter((m) => m.service_id === service.id),
-      songs: songs.filter((s) => s.service_id === service.id),
-    }));
+        const result: ServiceWithStatus[] = services.map(
+          (service: Service) => ({
+            service,
+            members: members.filter((m) => m.service_id === service.id),
+            songs: songs.filter((s) => s.service_id === service.id),
+          }),
+        );
 
-    setServicesForDay(result);
-    setLoadingServices(false);
-  }, []);
+        setServicesForDay(result);
+        setLoadingServices(false);
+      });
+    },
+    [withLoader],
+  );
 
   useEffect(() => {
     ensureWeeklyServices(today);
@@ -110,10 +119,10 @@ export default function HomePage() {
 
   useEffect(() => {
     if (hasServices(selectedDate)) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       loadServicesForDay(selectedDate);
       ensureWeeklyServices(selectedDate);
     } else {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setServicesForDay([]);
     }
   }, [selectedDate, loadServicesForDay, ensureWeeklyServices]);
@@ -307,7 +316,10 @@ export default function HomePage() {
                 return (
                   <button
                     key={service.id}
-                    onClick={() => router.push(`/service/${service.id}`)}
+                    onClick={() => {
+                      showLoader();
+                      router.push(`/service/${service.id}`);
+                    }}
                     className='w-full text-left bg-white rounded-2xl shadow-sm hover:shadow-md active:scale-[0.99] transition-all overflow-hidden'>
                     {/* Franja superior de color */}
                     <div

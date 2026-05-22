@@ -4,6 +4,7 @@ import { supabase } from '@/lib/supabase';
 import { Song, ServiceSong, Service } from '@/types';
 import AppShell from '@/components/AppShell';
 import { Search, Video, Music2, Clock, Hash } from 'lucide-react';
+import { useLoading } from '@/context/LoadingContext';
 
 interface SongWithStats extends Song {
   uses: number;
@@ -12,6 +13,7 @@ interface SongWithStats extends Song {
 }
 
 export default function CancionesPage() {
+  const { withLoader } = useLoading();
   const [songs, setSongs] = useState<Song[]>([]);
   const [serviceSongs, setServiceSongs] = useState<
     (ServiceSong & { service?: Service })[]
@@ -20,7 +22,7 @@ export default function CancionesPage() {
   const [search, setSearch] = useState('');
 
   useEffect(() => {
-    async function load() {
+    withLoader(async () => {
       setLoading(true);
       const [songsRes, ssRes] = await Promise.all([
         supabase.from('songs').select('*').order('title'),
@@ -32,8 +34,8 @@ export default function CancionesPage() {
       setSongs(songsRes.data ?? []);
       setServiceSongs(ssRes.data ?? []);
       setLoading(false);
-    }
-    load();
+    });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const songsWithStats = useMemo<SongWithStats[]>(() => {
