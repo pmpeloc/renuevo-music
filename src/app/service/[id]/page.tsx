@@ -327,7 +327,7 @@ export default function ServiceDetailPage() {
         {/* ── HEADER ── */}
         <div
           style={{ background: 'var(--purple-900)' }}
-          className='px-4 pt-10 pb-5 lg:pt-5'>
+          className='px-4 pt-5 pb-5 lg:pt-5'>
           <div className='flex items-center justify-between mb-3'>
             <button
               onClick={() => router.back()}

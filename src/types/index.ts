@@ -17,11 +17,23 @@ export type MemberRole =
 export type AvatarColor =
   | 'purple' | 'teal' | 'coral' | 'blue' | 'pink' | 'amber';
 
+export const INSTRUMENTS = [
+  'Voz',
+  'Piano / Teclado',
+  'Guitarra',
+  'Bajo',
+  'Batería',
+  'Violín',
+  'Saxofón',
+  'Trompeta',
+  'Otro',
+] as const;
+
+export type Instrument = typeof INSTRUMENTS[number];
+
 // Tonos musicales (mayores y menores)
 export const MUSICAL_KEYS = [
-  // Mayores
   'C', 'C#', 'D', 'Eb', 'E', 'F', 'F#', 'G', 'Ab', 'A', 'Bb', 'B',
-  // Menores
   'Cm', 'C#m', 'Dm', 'Ebm', 'Em', 'Fm', 'F#m', 'Gm', 'Abm', 'Am', 'Bbm', 'Bm',
 ] as const;
 
@@ -37,6 +49,7 @@ export interface Profile {
   photo_url: string | null;
   initials: string;
   color: AvatarColor;
+  instrument: string | null;
   created_at: string;
 }
 
@@ -123,15 +136,14 @@ export const ROLE_LABELS: Record<MemberRole, string> = {
 };
 
 export const AVATAR_COLORS: Record<AvatarColor, { bg: string; text: string }> = {
-  purple: { bg: 'bg-teal-100', text: 'text-green-900' },
+  purple: { bg: 'bg-purple-100', text: 'text-purple-900' },
   teal:   { bg: 'bg-teal-100',   text: 'text-teal-800'   },
   coral:  { bg: 'bg-orange-100', text: 'text-orange-800' },
   blue:   { bg: 'bg-blue-100',   text: 'text-blue-800'   },
   pink:   { bg: 'bg-pink-100',   text: 'text-pink-800'   },
-  amber:  { bg: 'bg-teal-100',  text: 'text-teal-800'  },
+  amber:  { bg: 'bg-amber-100',  text: 'text-amber-800'  },
 };
 
 export const AVATAR_COLOR_LIST: AvatarColor[] = ['purple', 'teal', 'coral', 'blue', 'pink', 'amber'];
 
-// Días de la semana que tienen servicios (0=lunes)
-export const SERVICE_WEEKDAYS = [3, 5, 6]; // jueves=3, sábado=5, domingo=6
+export const SERVICE_WEEKDAYS = [3, 5, 6];

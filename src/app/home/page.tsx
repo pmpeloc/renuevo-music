@@ -18,14 +18,12 @@ import {
   formatMonth,
   formatDayName,
   formatDate,
-  clearActiveProfileId,
   getMondayOfWeek,
   addDays,
 } from '@/lib/utils';
 import Avatar from '@/components/Avatar';
-import PWAInstallButton from '@/components/PWAInstallButton';
 import AppShell from '@/components/AppShell';
-import { LogOut, ChevronRight, Music2, Users } from 'lucide-react';
+import { ChevronRight, Music2, Users } from 'lucide-react';
 
 interface ServiceWithStatus {
   service: Service;
@@ -142,11 +140,6 @@ export default function HomePage() {
     if (centerDate) setVisibleMonth(centerDate);
   }
 
-  function handleLogout() {
-    clearActiveProfileId();
-    router.replace('/');
-  }
-
   function getServiceStatus(
     sw: ServiceWithStatus,
   ): 'complete' | 'no_songs' | 'no_director' | 'empty' {
@@ -196,36 +189,24 @@ export default function HomePage() {
       <div className='flex flex-col h-full'>
         {/* ── HEADER ── */}
         <div style={{ background: 'var(--purple-900)' }}>
-          <div className='px-5 pt-10 pb-4 lg:pt-5 lg:pb-4 flex items-center justify-between'>
+          <div className='px-5 pt-5 pb-2 lg:pt-5 lg:pb-2 flex items-center justify-between'>
             <div>
-              <p
-                className='text-xs mb-0.5'
-                style={{ color: 'var(--purple-200)' }}>
+              <p className='text-lg font-semibold text-white'>
                 Hola, {firstNameShort} 👋
               </p>
-              <h1 className='text-xl font-semibold text-white'>Listado</h1>
+              <p
+                className='text-sm font-semibold capitalize mt-0.5'
+                style={{ color: 'var(--orange-600)' }}>
+                {formatMonth(visibleMonth)}
+              </p>
             </div>
-            {/* En desktop estos controles están en la sidebar */}
-            <div className='flex items-center gap-2 lg:hidden'>
-              <PWAInstallButton />
+            {/* Avatar → navega a /perfil */}
+            <button
+              onClick={() => router.push('/perfil')}
+              className='shrink-0'
+              title='Mi perfil'>
               <Avatar profile={profile} size='md' />
-              <button
-                onClick={handleLogout}
-                className='w-8 h-8 rounded-full flex items-center justify-center'
-                style={{ background: 'rgba(255,255,255,0.1)' }}
-                title='Cerrar sesión'>
-                <LogOut size={15} className='text-white' />
-              </button>
-            </div>
-          </div>
-
-          {/* Mes visible */}
-          <div className='px-5 pb-1'>
-            <p
-              className='text-sm font-semibold capitalize'
-              style={{ color: 'var(--orange-600)' }}>
-              {formatMonth(visibleMonth)}
-            </p>
+            </button>
           </div>
 
           {/* Strip de fechas */}
