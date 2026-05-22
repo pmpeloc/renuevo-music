@@ -102,9 +102,11 @@ export default function PerfilPage() {
   const [saving, setSaving] = useState(false);
 
   // ── Photo upload ──
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);    // galería
+  const cameraInputRef = useRef<HTMLInputElement>(null);  // cámara
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
+  const [showPhotoMenu, setShowPhotoMenu] = useState(false);
 
   // ── Service history ──
   const [serviceHistory, setServiceHistory] = useState<ServiceHistoryItem[]>(
@@ -342,7 +344,7 @@ export default function PerfilPage() {
               />
               {/* Camera button */}
               <button
-                onClick={() => fileInputRef.current?.click()}
+                onClick={() => setShowPhotoMenu(true)}
                 disabled={uploadingPhoto}
                 className='absolute -bottom-1 -right-1 w-8 h-8 rounded-full flex items-center justify-center shadow-md'
                 style={{ background: 'var(--purple-600)' }}
@@ -353,11 +355,20 @@ export default function PerfilPage() {
                   <Camera size={14} className='text-white' />
                 )}
               </button>
+              {/* Input cámara (con capture) */}
+              <input
+                ref={cameraInputRef}
+                type='file'
+                accept='image/*'
+                capture='user'
+                className='hidden'
+                onChange={handleFileChange}
+              />
+              {/* Input galería (sin capture) */}
               <input
                 ref={fileInputRef}
                 type='file'
                 accept='image/*'
-                capture='user'
                 className='hidden'
                 onChange={handleFileChange}
               />
@@ -427,7 +438,7 @@ export default function PerfilPage() {
           {hasPhoto && (
             <div className='bg-white rounded-2xl shadow-sm'>
               <button
-                onClick={() => fileInputRef.current?.click()}
+                onClick={() => setShowPhotoMenu(true)}
                 className='w-full flex items-center gap-3 px-4 py-3.5 text-left hover:bg-gray-50 rounded-t-2xl'>
                 <div
                   className='w-8 h-8 rounded-xl flex items-center justify-center'
@@ -721,6 +732,51 @@ export default function PerfilPage() {
           <div className='h-4' />
         </div>
       </div>
+
+      {/* ── PHOTO MENU ── */}
+      {showPhotoMenu && (
+        <div
+          className='fixed inset-0 z-50 flex flex-col justify-end lg:items-center lg:justify-center'
+          style={{ background: 'rgba(0,0,0,0.45)' }}
+          onClick={(e) => { if (e.target === e.currentTarget) setShowPhotoMenu(false); }}>
+          <div className='bg-white rounded-t-3xl lg:rounded-3xl p-5 lg:max-w-xs lg:w-full mx-auto'>
+            <p className='text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3 text-center'>
+              Foto de perfil
+            </p>
+            <div className='space-y-2'>
+              <button
+                onClick={() => { setShowPhotoMenu(false); setTimeout(() => cameraInputRef.current?.click(), 50); }}
+                className='w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl text-left hover:bg-gray-50'
+                style={{ background: 'var(--purple-50)' }}>
+                <div className='w-9 h-9 rounded-xl flex items-center justify-center' style={{ background: 'var(--purple-600)' }}>
+                  <Camera size={16} className='text-white' />
+                </div>
+                <div>
+                  <p className='text-sm font-semibold text-gray-800'>Tomar foto</p>
+                  <p className='text-xs text-gray-400'>Usar la cámara del dispositivo</p>
+                </div>
+              </button>
+              <button
+                onClick={() => { setShowPhotoMenu(false); setTimeout(() => fileInputRef.current?.click(), 50); }}
+                className='w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl text-left hover:bg-gray-50'
+                style={{ background: '#F8F7FF' }}>
+                <div className='w-9 h-9 rounded-xl flex items-center justify-center' style={{ background: 'var(--purple-50)' }}>
+                  <Upload size={16} style={{ color: 'var(--purple-600)' }} />
+                </div>
+                <div>
+                  <p className='text-sm font-semibold text-gray-800'>Elegir de la galería</p>
+                  <p className='text-xs text-gray-400'>Seleccionar una foto existente</p>
+                </div>
+              </button>
+              <button
+                onClick={() => setShowPhotoMenu(false)}
+                className='w-full py-3 rounded-2xl text-sm font-medium text-gray-500 hover:bg-gray-50 mt-1'>
+                Cancelar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ── DELETE MODAL ── */}
       {showDeleteModal && (
