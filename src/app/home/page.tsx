@@ -3,6 +3,7 @@ import { useEffect, useRef, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { useActiveProfile } from '@/hooks/useActiveProfile';
+import { usePushSubscription } from '@/hooks/usePushSubscription';
 import {
   Service,
   ServiceType,
@@ -35,6 +36,9 @@ interface ServiceWithStatus {
 export default function HomePage() {
   const router = useRouter();
   const { profile, loading: profileLoading } = useActiveProfile();
+
+  // Registrar suscripción push cuando el perfil está cargado
+  usePushSubscription(profile?.id);
 
   const now = new Date();
   const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
