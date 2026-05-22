@@ -20,7 +20,7 @@ export default function KeySelector({ label, value, onChange, hint }: KeySelecto
       <select
         value={value ?? ''}
         onChange={(e) => onChange((e.target.value as MusicalKey) || null)}
-        className="w-full px-4 py-3 rounded-xl border border-gray-200 text-base bg-white focus:outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-100 text-gray-900"
+        className="w-full px-4 py-3 rounded-xl border border-gray-200 text-base bg-white focus:outline-none input-ring text-gray-900"
       >
         <option value="">— Sin especificar —</option>
         <optgroup label="Tonos mayores">

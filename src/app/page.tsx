@@ -3,11 +3,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { Profile, AVATAR_COLOR_LIST, AvatarColor } from '@/types';
-import {
-  getInitials,
-  setActiveProfileId,
-  getActiveProfileId,
-} from '@/lib/utils';
+import { getInitials, setActiveProfileId, getActiveProfileId } from '@/lib/utils';
 import Avatar from '@/components/Avatar';
 import ServiceWorkerRegister from '@/components/ServiceWorkerRegister';
 import Image from 'next/image';
@@ -28,7 +24,6 @@ export default function ProfileSelectionPage() {
   }, [router]);
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/immutability
     loadProfiles();
   }, []);
 
@@ -66,32 +61,28 @@ export default function ProfileSelectionPage() {
   }
 
   const previewProfile = newName.trim()
-    ? {
-        name: newName.trim(),
-        initials: getInitials(newName.trim()),
-        color: newColor,
-        photo_url: null,
-      }
+    ? { name: newName.trim(), initials: getInitials(newName.trim()), color: newColor, photo_url: null }
     : null;
 
   const COLOR_HEX: Record<AvatarColor, string> = {
     purple: '#534AB7',
-    teal: '#1D9E75',
-    coral: '#D85A30',
-    blue: '#378ADD',
-    pink: '#D4537E',
-    amber: '#BA7517',
+    teal:   '#1D9E75',
+    coral:  '#D85A30',
+    blue:   '#378ADD',
+    pink:   '#D4537E',
+    amber:  '#BA7517',
   };
 
   return (
     <>
       <ServiceWorkerRegister />
-      <div
-        className='min-h-full flex flex-col'
-        style={{ background: 'var(--purple-900)' }}>
-        {/* Header */}
-        <div className='pt-16 pb-8 px-6 text-center'>
-          <div className='w-24 h-24 rounded-3xl mx-auto mb-4 overflow-hidden'>
+
+      {/* ── FONDO CON GRADIENTE SUTIL ── */}
+      <div className='min-h-full flex flex-col' style={{ background: 'var(--purple-900)' }}>
+
+        {/* ── HEADER ── */}
+        <div className='pt-16 pb-10 px-6 text-center'>
+          <div className='w-24 h-24 rounded-3xl mx-auto mb-5 overflow-hidden shadow-lg'>
             <Image
               src='/renuevo-music-2.png'
               alt='Renuevo Music'
@@ -104,13 +95,13 @@ export default function ProfileSelectionPage() {
           <h1 className='text-2xl font-semibold text-white mb-1'>
             Renuevo Music
           </h1>
-          <p style={{ color: 'var(--purple-200)' }} className='text-sm'>
-            Selecciona tu perfil para continuar
+          <p className='text-sm' style={{ color: 'var(--purple-200)' }}>
+            Seleccioná tu perfil para continuar
           </p>
         </div>
 
-        {/* Profiles list */}
-        <div className='flex-1 bg-white rounded-t-3xl px-4 pt-6 pb-10'>
+        {/* ── LISTA DE PERFILES ── */}
+        <div className='flex-1 bg-white rounded-t-3xl px-4 pt-6 pb-10 shadow-xl'>
           {loading ? (
             <div className='flex justify-center py-12'>
               <div
@@ -122,7 +113,7 @@ export default function ProfileSelectionPage() {
               />
             </div>
           ) : (
-            <div className='space-y-2 fade-in'>
+            <div className='space-y-2 fade-in max-w-md mx-auto'>
               {profiles.map((profile) => (
                 <button
                   key={profile.id}
@@ -130,7 +121,7 @@ export default function ProfileSelectionPage() {
                   className='w-full flex items-center gap-4 p-4 rounded-2xl hover:bg-gray-50 active:bg-gray-100 transition-colors text-left'>
                   <Avatar profile={profile} size='lg' />
                   <div className='flex-1 min-w-0'>
-                    <p className='font-medium text-gray-900 text-base'>
+                    <p className='font-semibold text-gray-900 text-base'>
                       {profile.name}
                     </p>
                     <p className='text-sm text-gray-400'>Toca para continuar</p>
@@ -147,24 +138,38 @@ export default function ProfileSelectionPage() {
                 </button>
               ))}
 
+              {/* Botón crear nuevo perfil */}
               <button
                 onClick={() => setShowCreate(true)}
-                className='w-full flex items-center gap-4 p-4 rounded-2xl border border-dashed border-gray-200 hover:border-teal-300 hover:bg-teal-50 transition-colors text-left mt-2'>
-                <div className='w-14 h-14 rounded-full bg-gray-100 flex items-center justify-center shrink-0'>
-                  <Plus size={22} className='text-gray-400' />
+                className='w-full flex items-center gap-4 p-4 rounded-2xl border border-dashed transition-colors text-left mt-2'
+                style={{ borderColor: 'var(--purple-200)' }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = 'var(--purple-50)';
+                  e.currentTarget.style.borderColor = 'var(--purple-600)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = '';
+                  e.currentTarget.style.borderColor = 'var(--purple-200)';
+                }}>
+                <div
+                  className='w-14 h-14 rounded-full flex items-center justify-center shrink-0'
+                  style={{ background: 'var(--purple-50)' }}>
+                  <Plus size={22} style={{ color: 'var(--purple-600)' }} />
                 </div>
-                <p className='font-medium text-gray-500'>Crear nuevo perfil</p>
+                <p className='font-medium' style={{ color: 'var(--purple-600)' }}>
+                  Crear nuevo perfil
+                </p>
               </button>
             </div>
           )}
         </div>
       </div>
 
-      {/* Modal crear perfil */}
+      {/* ── MODAL CREAR PERFIL ── */}
       {showCreate && (
         <div
           className='fixed inset-0 z-50 flex flex-col justify-end'
-          style={{ background: 'rgba(0,0,0,0.5)' }}
+          style={{ background: 'rgba(0,0,0,0.55)' }}
           onClick={(e) => {
             if (e.target === e.currentTarget) setShowCreate(false);
           }}>
@@ -178,26 +183,17 @@ export default function ProfileSelectionPage() {
               </button>
             </div>
 
-            {/* Preview avatar */}
+            {/* Avatar preview */}
             <div className='flex justify-center mb-6'>
               {previewProfile ? (
                 <Avatar profile={previewProfile} size='lg' />
               ) : (
-                <div className='w-14 h-14 rounded-full bg-gray-100 flex items-center justify-center'>
+                <div
+                  className='w-14 h-14 rounded-full flex items-center justify-center'
+                  style={{ background: 'var(--purple-50)' }}>
                   <svg width='24' height='24' viewBox='0 0 24 24' fill='none'>
-                    <circle
-                      cx='12'
-                      cy='8'
-                      r='4'
-                      stroke='#9ca3af'
-                      strokeWidth='1.5'
-                    />
-                    <path
-                      d='M4 20c0-4 3.6-7 8-7s8 3 8 7'
-                      stroke='#9ca3af'
-                      strokeWidth='1.5'
-                      strokeLinecap='round'
-                    />
+                    <circle cx='12' cy='8' r='4' stroke='#AFA9EC' strokeWidth='1.5' />
+                    <path d='M4 20c0-4 3.6-7 8-7s8 3 8 7' stroke='#AFA9EC' strokeWidth='1.5' strokeLinecap='round' />
                   </svg>
                 </div>
               )}
@@ -205,7 +201,7 @@ export default function ProfileSelectionPage() {
 
             {/* Nombre */}
             <div className='mb-4'>
-              <label className='text-xs font-medium text-gray-500 uppercase tracking-wide mb-2 block'>
+              <label className='text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2 block'>
                 Nombre y apellido
               </label>
               <input
@@ -213,7 +209,7 @@ export default function ProfileSelectionPage() {
                 value={newName}
                 onChange={(e) => setNewName(e.target.value)}
                 placeholder='Ej: Juan García'
-                className='w-full px-4 py-3 rounded-xl border border-gray-200 text-base focus:outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-100'
+                className='w-full px-4 py-3 rounded-xl border border-gray-200 text-base input-ring'
                 autoFocus
                 onKeyDown={(e) => e.key === 'Enter' && createProfile()}
               />
@@ -221,7 +217,7 @@ export default function ProfileSelectionPage() {
 
             {/* Color */}
             <div className='mb-6'>
-              <label className='text-xs font-medium text-gray-500 uppercase tracking-wide mb-3 block'>
+              <label className='text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3 block'>
                 Color del avatar
               </label>
               <div className='flex gap-3'>
@@ -230,9 +226,7 @@ export default function ProfileSelectionPage() {
                     key={color}
                     onClick={() => setNewColor(color)}
                     className={`w-9 h-9 rounded-full transition-transform ${
-                      newColor === color
-                        ? 'scale-110 ring-2 ring-offset-2 ring-gray-400'
-                        : ''
+                      newColor === color ? 'scale-110 ring-2 ring-offset-2 ring-gray-400' : ''
                     }`}
                     style={{ background: COLOR_HEX[color] }}
                   />

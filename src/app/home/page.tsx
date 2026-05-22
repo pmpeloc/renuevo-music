@@ -23,11 +23,9 @@ import {
 } from '@/lib/utils';
 import Avatar from '@/components/Avatar';
 import PWAInstallButton from '@/components/PWAInstallButton';
-import { LogOut, ChevronRight, Music2 } from 'lucide-react';
+import AppShell from '@/components/AppShell';
+import { LogOut, ChevronRight, Music2, Users } from 'lucide-react';
 
-// ============================================================
-// Tipos auxiliares para los servicios del día
-// ============================================================
 interface ServiceWithStatus {
   service: Service;
   members: ServiceMember[];
@@ -49,11 +47,9 @@ export default function HomePage() {
 
   const stripRef = useRef<HTMLDivElement>(null);
 
-  // Generar servicios de la semana si no existen
   const ensureWeeklyServices = useCallback(async (date: Date) => {
     const monday = getMondayOfWeek(date);
     const monday2 = addDays(monday, 7);
-    // Llamar función SQL para generar servicios
     await supabase.rpc('generate_weekly_services', {
       week_start: monday.toISOString().split('T')[0],
     });
@@ -62,7 +58,6 @@ export default function HomePage() {
     });
   }, []);
 
-  // Cargar servicios del día seleccionado
   const loadServicesForDay = useCallback(async (date: Date) => {
     setLoadingServices(true);
     const dateStr = date.toISOString().split('T')[0];
@@ -113,7 +108,6 @@ export default function HomePage() {
 
   useEffect(() => {
     if (hasServices(selectedDate)) {
-      // eslint-disable-next-line
       loadServicesForDay(selectedDate);
       ensureWeeklyServices(selectedDate);
     } else {
@@ -121,20 +115,16 @@ export default function HomePage() {
     }
   }, [selectedDate, loadServicesForDay, ensureWeeklyServices]);
 
-  // Scroll automático a "hoy" — corre cuando el perfil termina de cargar
-  // (el strip no existe en el DOM mientras profileLoading = true)
   useEffect(() => {
     if (profileLoading || !stripRef.current) return;
     const todayIndex = dates.findIndex((d) => isSameDay(d, today));
     const itemWidth = 52;
     const containerWidth = stripRef.current.clientWidth;
-    const scrollTo =
-      todayIndex * itemWidth - containerWidth / 2 + itemWidth / 2;
+    const scrollTo = todayIndex * itemWidth - containerWidth / 2 + itemWidth / 2;
     stripRef.current.scrollLeft = Math.max(0, scrollTo);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [profileLoading]);
 
-  // Detectar mes visible mientras scrollea el strip
   function handleStripScroll() {
     if (!stripRef.current) return;
     const el = stripRef.current;
@@ -146,21 +136,14 @@ export default function HomePage() {
     if (centerDate) setVisibleMonth(centerDate);
   }
 
-  function handleSelectDate(date: Date) {
-    setSelectedDate(date);
-  }
-
   function handleLogout() {
     clearActiveProfileId();
     router.replace('/');
   }
 
-  function getServiceStatus(
-    sw: ServiceWithStatus,
-  ): 'complete' | 'no_songs' | 'no_director' | 'empty' {
+  function getServiceStatus(sw: ServiceWithStatus): 'complete' | 'no_songs' | 'no_director' | 'empty' {
     const hasDirector = sw.members.some(
-      (m) =>
-        m.role === 'director_alabanzas' || m.role === 'director_adoraciones',
+      (m) => m.role === 'director_alabanzas' || m.role === 'director_adoraciones',
     );
     const hasSongs = sw.songs.length > 0;
     if (!hasDirector) return 'no_director';
@@ -169,29 +152,18 @@ export default function HomePage() {
   }
 
   const STATUS_CONFIG = {
-    complete: { label: 'Completo', bg: 'bg-teal-100', text: 'text-teal-800' },
-    no_songs: {
-      label: 'Sin canciones',
-      bg: 'bg-teal-100',
-      text: 'text-teal-800',
-    },
-    no_director: {
-      label: 'Sin director',
-      bg: 'bg-red-100',
-      text: 'text-red-800',
-    },
-    empty: { label: '', bg: '', text: '' },
+    complete:    { label: 'Completo',      color: 'var(--purple-800)', bg: 'var(--purple-50)' },
+    no_songs:    { label: 'Sin canciones', color: '#92400e',           bg: '#fef3c7'           },
+    no_director: { label: 'Sin director',  color: '#991b1b',           bg: '#fee2e2'           },
+    empty:       { label: '',              color: '',                  bg: ''                  },
   };
 
   if (profileLoading) {
     return (
-      <div className='h-full flex items-center justify-center'>
+      <div className='h-full flex items-center justify-center' style={{ background: '#F8F7FF' }}>
         <div
           className='w-6 h-6 border-2 rounded-full animate-spin'
-          style={{
-            borderColor: 'var(--purple-100)',
-            borderTopColor: 'var(--purple-600)',
-          }}
+          style={{ borderColor: 'var(--purple-100)', borderTopColor: 'var(--purple-600)' }}
         />
       </div>
     );
@@ -202,195 +174,207 @@ export default function HomePage() {
   const firstNameShort = profile.name.split(' ')[0];
 
   return (
-    <div className='flex flex-col h-full bg-white'>
-      {/* ── TOP NAV ── */}
-      <div className='px-4 pt-6 pb-2 flex items-center justify-between'>
-        <div>
-          <p className='text-xs text-gray-400'>Hola, {firstNameShort} 👋</p>
-          <h1 className='text-xl font-semibold text-gray-900'>Listado</h1>
-        </div>
-        <div className='flex items-center gap-2'>
-          <PWAInstallButton />
-          <Avatar profile={profile} size='md' />
-          <button
-            onClick={handleLogout}
-            className='w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center'
-            title='Cerrar sesión'>
-            <LogOut size={15} className='text-gray-500' />
-          </button>
-        </div>
-      </div>
+    <AppShell>
+      <div className='flex flex-col h-full'>
 
-      {/* ── MES VISIBLE ── */}
-      <div className='px-4 py-1'>
-        <p
-          className='text-sm font-medium capitalize'
-          style={{ color: 'var(--purple-600)' }}>
-          {formatMonth(visibleMonth)}
-        </p>
-      </div>
-
-      {/* ── STRIP DE FECHAS ── */}
-      <div
-        ref={stripRef}
-        onScroll={handleStripScroll}
-        className='flex gap-1 px-4 py-2 no-scrollbar overflow-x-auto'>
-        {dates.map((date, i) => {
-          const isToday = isSameDay(date, today);
-          const isSelected = isSameDay(date, selectedDate);
-          const hasEv = hasServices(date);
-          const dayName = formatDayName(date);
-          const dayNum = date.getDate();
-
-          return (
-            <button
-              key={i}
-              onClick={() => handleSelectDate(date)}
-              className={`flex flex-col items-center py-2 px-2 rounded-xl transition-colors shrink-0 w-12 ${
-                isSelected
-                  ? 'text-white'
-                  : isToday
-                    ? 'text-gray-900'
-                    : 'text-gray-500 hover:bg-gray-50'
-              }`}
-              style={
-                isSelected ? { background: 'var(--purple-600)' } : undefined
-              }>
-              <span className='text-[10px] font-medium capitalize'>
-                {dayName.replace('.', '')}
-              </span>
-              <span
-                className={`text-base font-semibold mt-0.5 ${isToday && !isSelected ? 'text-teal-700' : ''}`}>
-                {dayNum}
-              </span>
-              {hasEv && (
-                <div
-                  className='w-1 h-1 rounded-full mt-1'
-                  style={{
-                    background: isSelected
-                      ? 'rgba(255,255,255,0.6)'
-                      : 'var(--purple-600)',
-                  }}
-                />
-              )}
-            </button>
-          );
-        })}
-      </div>
-
-      {/* ── SEPARADOR ── */}
-      <div className='h-px bg-gray-100 mx-4' />
-
-      {/* ── SERVICIOS DEL DÍA ── */}
-      <div className='flex-1 overflow-y-auto px-4 py-4'>
-        {!hasServices(selectedDate) ? (
-          <div className='flex flex-col items-center justify-center py-16 text-center'>
-            <div className='w-14 h-14 rounded-full bg-gray-100 flex items-center justify-center mb-3'>
-              <Music2 size={24} className='text-gray-300' />
+        {/* ── HEADER ── */}
+        <div style={{ background: 'var(--purple-900)' }}>
+          <div className='px-5 pt-10 pb-4 lg:pt-5 lg:pb-4 flex items-center justify-between'>
+            <div>
+              <p className='text-xs mb-0.5' style={{ color: 'var(--purple-200)' }}>
+                Hola, {firstNameShort} 👋
+              </p>
+              <h1 className='text-xl font-semibold text-white'>Listado</h1>
             </div>
-            <p className='text-gray-400 text-sm'>Sin servicios este día</p>
+            {/* En desktop estos controles están en la sidebar */}
+            <div className='flex items-center gap-2 lg:hidden'>
+              <PWAInstallButton />
+              <Avatar profile={profile} size='md' />
+              <button
+                onClick={handleLogout}
+                className='w-8 h-8 rounded-full flex items-center justify-center'
+                style={{ background: 'rgba(255,255,255,0.1)' }}
+                title='Cerrar sesión'>
+                <LogOut size={15} className='text-white' />
+              </button>
+            </div>
           </div>
-        ) : loadingServices ? (
-          <div className='flex justify-center py-10'>
-            <div
-              className='w-5 h-5 border-2 rounded-full animate-spin'
-              style={{
-                borderColor: 'var(--purple-100)',
-                borderTopColor: 'var(--purple-600)',
-              }}
-            />
+
+          {/* Mes visible */}
+          <div className='px-5 pb-1'>
+            <p className='text-sm font-semibold capitalize' style={{ color: 'var(--orange-600)' }}>
+              {formatMonth(visibleMonth)}
+            </p>
           </div>
-        ) : (
-          <div className='space-y-3 fade-in'>
-            {servicesForDay.map(({ service, members, songs }) => {
-              const status = getServiceStatus({ service, members, songs });
-              const cfg = STATUS_CONFIG[status];
-              const directors = members.filter(
-                (m) =>
-                  m.role === 'director_alabanzas' ||
-                  m.role === 'director_adoraciones',
-              );
-              const coro = members.filter((m) => m.role === 'coro');
-              const label = SERVICE_LABELS[service.type as ServiceType];
+
+          {/* Strip de fechas */}
+          <div
+            ref={stripRef}
+            onScroll={handleStripScroll}
+            className='flex gap-1 px-4 pt-1 pb-3 no-scrollbar overflow-x-auto'>
+            {dates.map((date, i) => {
+              const isToday    = isSameDay(date, today);
+              const isSelected = isSameDay(date, selectedDate);
+              const hasEv      = hasServices(date);
+              const dayName    = formatDayName(date);
+              const dayNum     = date.getDate();
 
               return (
                 <button
-                  key={service.id}
-                  onClick={() => router.push(`/service/${service.id}`)}
-                  className='w-full text-left bg-white border border-gray-100 rounded-2xl p-4 shadow-sm hover:shadow-md active:scale-[0.99] transition-all'>
-                  {/* Header */}
-                  <div className='flex items-start justify-between mb-3'>
-                    <div>
-                      <p className='font-semibold text-gray-900 text-base'>
-                        {label}
-                      </p>
-                      <p className='text-xs text-gray-400 mt-0.5 capitalize'>
-                        {formatDate(selectedDate)}
-                      </p>
-                    </div>
-                    <div className='flex items-center gap-1'>
-                      {status !== 'empty' && (
-                        <span
-                          className={`text-xs font-medium px-2 py-0.5 rounded-full ${cfg.bg} ${cfg.text}`}>
-                          {cfg.label}
-                        </span>
-                      )}
-                      <ChevronRight size={16} className='text-gray-300 ml-1' />
-                    </div>
-                  </div>
-
-                  {/* Personas */}
-                  {directors.length > 0 || coro.length > 0 ? (
-                    <div className='flex items-center gap-2 flex-wrap'>
-                      {directors.map((m) => (
-                        <div key={m.id} className='flex items-center gap-1.5'>
-                          {m.profile && (
-                            <Avatar profile={m.profile} size='sm' />
-                          )}
-                          <span className='text-xs text-gray-500'>
-                            {m.profile?.name.split(' ')[0]}
-                          </span>
-                        </div>
-                      ))}
-                      {coro.length > 0 && (
-                        <>
-                          <div className='w-px h-4 bg-gray-200' />
-                          <div className='flex -space-x-1'>
-                            {coro.map((m) =>
-                              m.profile ? (
-                                <Avatar
-                                  key={m.id}
-                                  profile={m.profile}
-                                  size='sm'
-                                />
-                              ) : null,
-                            )}
-                          </div>
-                          <span className='text-xs text-gray-400'>Coro</span>
-                        </>
-                      )}
-                    </div>
-                  ) : (
-                    <p className='text-xs text-gray-300 italic'>
-                      Sin equipo asignado
-                    </p>
+                  key={i}
+                  onClick={() => setSelectedDate(date)}
+                  className='flex flex-col items-center py-2 px-2 rounded-xl transition-colors shrink-0 w-12'
+                  style={
+                    isSelected
+                      ? { background: 'var(--purple-600)', color: '#fff' }
+                      : isToday
+                        ? { color: '#fff' }
+                        : { color: 'rgba(255,255,255,0.45)' }
+                  }>
+                  <span className='text-[10px] font-medium capitalize'>
+                    {dayName.replace('.', '')}
+                  </span>
+                  <span
+                    className='text-base font-semibold mt-0.5'
+                    style={isToday && !isSelected ? { color: 'var(--orange-600)' } : undefined}>
+                    {dayNum}
+                  </span>
+                  {hasEv && (
+                    <div
+                      className='w-1 h-1 rounded-full mt-1'
+                      style={{
+                        background: isSelected
+                          ? 'rgba(255,255,255,0.6)'
+                          : isToday
+                            ? 'var(--orange-600)'
+                            : 'var(--purple-200)',
+                      }}
+                    />
                   )}
-
-                  {/* Canciones */}
-                  <div className='flex items-center gap-1.5 mt-3 pt-3 border-t border-gray-50'>
-                    <Music2 size={12} className='text-gray-300' />
-                    <span className='text-xs text-gray-400'>
-                      {songs.length === 0
-                        ? 'Sin canciones cargadas'
-                        : `${songs.length} canción${songs.length !== 1 ? 'es' : ''} cargada${songs.length !== 1 ? 's' : ''}`}
-                    </span>
-                  </div>
                 </button>
               );
             })}
           </div>
-        )}
+        </div>
+
+        {/* ── CONTENIDO ── */}
+        <div className='flex-1 overflow-y-auto px-4 py-4 lg:px-6 lg:py-5' style={{ background: '#F8F7FF' }}>
+          {!hasServices(selectedDate) ? (
+            <div className='flex flex-col items-center justify-center py-20 text-center'>
+              <div
+                className='w-16 h-16 rounded-2xl flex items-center justify-center mb-4'
+                style={{ background: 'var(--purple-50)' }}>
+                <Music2 size={28} style={{ color: 'var(--purple-200)' }} />
+              </div>
+              <p className='font-medium text-gray-500'>Sin servicios este día</p>
+              <p className='text-sm text-gray-400 mt-1'>
+                Seleccioná un día marcado con •
+              </p>
+            </div>
+          ) : loadingServices ? (
+            <div className='flex justify-center py-12'>
+              <div
+                className='w-5 h-5 border-2 rounded-full animate-spin'
+                style={{ borderColor: 'var(--purple-100)', borderTopColor: 'var(--purple-600)' }}
+              />
+            </div>
+          ) : (
+            <div className='fade-in space-y-4 lg:grid lg:grid-cols-2 lg:gap-5 lg:space-y-0'>
+              {servicesForDay.map(({ service, members, songs }) => {
+                const status = getServiceStatus({ service, members, songs });
+                const cfg    = STATUS_CONFIG[status];
+                const directors = members.filter(
+                  (m) => m.role === 'director_alabanzas' || m.role === 'director_adoraciones',
+                );
+                const coro  = members.filter((m) => m.role === 'coro');
+                const label = SERVICE_LABELS[service.type as ServiceType];
+
+                return (
+                  <button
+                    key={service.id}
+                    onClick={() => router.push(`/service/${service.id}`)}
+                    className='w-full text-left bg-white rounded-2xl shadow-sm hover:shadow-md active:scale-[0.99] transition-all overflow-hidden'>
+
+                    {/* Franja superior de color */}
+                    <div
+                      className='h-1.5 w-full'
+                      style={{ background: 'var(--purple-600)' }}
+                    />
+
+                    <div className='p-4'>
+                      {/* Header */}
+                      <div className='flex items-start justify-between mb-3'>
+                        <div>
+                          <p className='font-semibold text-gray-900 text-base'>
+                            {label}
+                          </p>
+                          <p className='text-xs text-gray-400 mt-0.5 capitalize'>
+                            {formatDate(selectedDate)}
+                          </p>
+                        </div>
+                        <div className='flex items-center gap-1.5'>
+                          {status !== 'empty' && cfg.label && (
+                            <span
+                              className='text-xs font-semibold px-2.5 py-1 rounded-full'
+                              style={{ background: cfg.bg, color: cfg.color }}>
+                              {cfg.label}
+                            </span>
+                          )}
+                          <ChevronRight size={16} className='text-gray-300' />
+                        </div>
+                      </div>
+
+                      {/* Equipo */}
+                      {directors.length > 0 || coro.length > 0 ? (
+                        <div className='flex items-center gap-3 flex-wrap'>
+                          {directors.map((m) => (
+                            <div key={m.id} className='flex items-center gap-2'>
+                              {m.profile && <Avatar profile={m.profile} size='sm' />}
+                              <span className='text-xs font-medium text-gray-600'>
+                                {m.profile?.name.split(' ')[0]}
+                              </span>
+                            </div>
+                          ))}
+                          {coro.length > 0 && (
+                            <>
+                              <div className='w-px h-4 bg-gray-200' />
+                              <div className='flex -space-x-1.5'>
+                                {coro.map((m) =>
+                                  m.profile ? (
+                                    <Avatar key={m.id} profile={m.profile} size='sm' />
+                                  ) : null,
+                                )}
+                              </div>
+                              <span className='text-xs text-gray-400 flex items-center gap-1'>
+                                <Users size={11} />
+                                Coro
+                              </span>
+                            </>
+                          )}
+                        </div>
+                      ) : (
+                        <p className='text-xs text-gray-300 italic'>Sin equipo asignado</p>
+                      )}
+
+                      {/* Canciones */}
+                      <div
+                        className='flex items-center gap-1.5 mt-3 pt-3'
+                        style={{ borderTop: '1px solid #F3F4F6' }}>
+                        <Music2 size={12} style={{ color: 'var(--purple-200)' }} />
+                        <span className='text-xs text-gray-400'>
+                          {songs.length === 0
+                            ? 'Sin canciones cargadas'
+                            : `${songs.length} canción${songs.length !== 1 ? 'es' : ''} cargada${songs.length !== 1 ? 's' : ''}`}
+                        </span>
+                      </div>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          )}
+        </div>
       </div>
-    </div>
+    </AppShell>
   );
 }

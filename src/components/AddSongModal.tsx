@@ -265,7 +265,7 @@ export default function AddSongModal({
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     placeholder='Buscar canción...'
-                    className='w-full pl-9 pr-4 py-3 rounded-xl border border-gray-200 text-base focus:outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-100'
+                    className='w-full pl-9 pr-4 py-3 rounded-xl border border-gray-200 text-base focus:outline-none input-ring'
                   />
                   {searching && (
                     <div className='absolute right-3 top-1/2 -translate-y-1/2'>
@@ -285,7 +285,7 @@ export default function AddSongModal({
                       <button
                         key={song.id}
                         onClick={() => selectFromCatalog(song)}
-                        className='w-full text-left px-4 py-3 hover:bg-teal-50 border-b border-gray-50 last:border-0 flex items-center gap-3'>
+                        className='w-full text-left px-4 py-3 hover:bg-gray-50 border-b border-gray-50 last:border-0 flex items-center gap-3'>
                         <div>
                           <p className='font-medium text-sm text-gray-900'>
                             {song.title}
@@ -345,7 +345,7 @@ export default function AddSongModal({
                           value={editTitle}
                           onChange={(e) => setEditTitle(e.target.value)}
                           placeholder='Título de la canción'
-                          className='w-full px-2 py-1 rounded-lg border border-gray-200 text-sm font-semibold focus:outline-none focus:border-teal-600'
+                          className='w-full px-2 py-1 rounded-lg border border-gray-200 text-sm font-semibold focus:outline-none input-ring'
                           style={{ color: 'var(--purple-800)' }}
                         />
                         <input
@@ -353,7 +353,7 @@ export default function AddSongModal({
                           value={editArtist}
                           onChange={(e) => setEditArtist(e.target.value)}
                           placeholder='Artista (opcional)'
-                          className='w-full px-2 py-1 rounded-lg border border-gray-200 text-xs focus:outline-none focus:border-teal-600'
+                          className='w-full px-2 py-1 rounded-lg border border-gray-200 text-xs focus:outline-none input-ring'
                           style={{ color: 'var(--purple-600)' }}
                         />
                       </div>
@@ -397,7 +397,7 @@ export default function AddSongModal({
                       value={youtubeUrl}
                       onChange={(e) => setYoutubeUrl(e.target.value)}
                       placeholder='https://youtube.com/watch?v=...'
-                      className='flex-1 px-4 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-100'
+                      className='flex-1 px-4 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none input-ring'
                     />
                     <button
                       type='button'
@@ -440,7 +440,7 @@ export default function AddSongModal({
                     value={newTitle}
                     onChange={(e) => setNewTitle(e.target.value)}
                     placeholder='Nombre de la canción'
-                    className='w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-100'
+                    className='w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none input-ring'
                   />
                 </div>
                 <div>
@@ -452,7 +452,7 @@ export default function AddSongModal({
                     value={newArtist}
                     onChange={(e) => setNewArtist(e.target.value)}
                     placeholder='Ej: Elevation Worship'
-                    className='w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-100'
+                    className='w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none input-ring'
                   />
                 </div>
                 <div>
@@ -465,7 +465,7 @@ export default function AddSongModal({
                       value={newYoutube}
                       onChange={(e) => setNewYoutube(e.target.value)}
                       placeholder='https://youtube.com/watch?v=...'
-                      className='flex-1 px-4 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-100'
+                      className='flex-1 px-4 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none input-ring'
                     />
                     <button
                       type='button'
@@ -536,7 +536,7 @@ export default function AddSongModal({
                     value={notes}
                     onChange={(e) => setNotes(e.target.value)}
                     placeholder='Ej: tempo lento, a cappella al inicio...'
-                    className='w-full px-4 py-3 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-100'
+                    className='w-full px-4 py-3 rounded-xl border border-gray-200 text-sm focus:outline-none input-ring'
                   />
                 </div>
               </div>
