@@ -3,7 +3,11 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { Profile, AVATAR_COLOR_LIST, AvatarColor } from '@/types';
-import { getInitials, setActiveProfileId, getActiveProfileId } from '@/lib/utils';
+import {
+  getInitials,
+  setActiveProfileId,
+  getActiveProfileId,
+} from '@/lib/utils';
 import Avatar from '@/components/Avatar';
 import ServiceWorkerRegister from '@/components/ServiceWorkerRegister';
 import Image from 'next/image';
@@ -24,6 +28,7 @@ export default function ProfileSelectionPage() {
   }, [router]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/immutability
     loadProfiles();
   }, []);
 
@@ -61,16 +66,21 @@ export default function ProfileSelectionPage() {
   }
 
   const previewProfile = newName.trim()
-    ? { name: newName.trim(), initials: getInitials(newName.trim()), color: newColor, photo_url: null }
+    ? {
+        name: newName.trim(),
+        initials: getInitials(newName.trim()),
+        color: newColor,
+        photo_url: null,
+      }
     : null;
 
   const COLOR_HEX: Record<AvatarColor, string> = {
     purple: '#534AB7',
-    teal:   '#1D9E75',
-    coral:  '#D85A30',
-    blue:   '#378ADD',
-    pink:   '#D4537E',
-    amber:  '#BA7517',
+    teal: '#1D9E75',
+    coral: '#D85A30',
+    blue: '#378ADD',
+    pink: '#D4537E',
+    amber: '#BA7517',
   };
 
   return (
@@ -78,8 +88,9 @@ export default function ProfileSelectionPage() {
       <ServiceWorkerRegister />
 
       {/* ── FONDO CON GRADIENTE SUTIL ── */}
-      <div className='min-h-full flex flex-col' style={{ background: 'var(--purple-900)' }}>
-
+      <div
+        className='min-h-full flex flex-col'
+        style={{ background: 'var(--purple-900)' }}>
         {/* ── HEADER ── */}
         <div className='pt-16 pb-10 px-6 text-center'>
           <div className='w-24 h-24 rounded-3xl mx-auto mb-5 overflow-hidden shadow-lg'>
@@ -156,7 +167,9 @@ export default function ProfileSelectionPage() {
                   style={{ background: 'var(--purple-50)' }}>
                   <Plus size={22} style={{ color: 'var(--purple-600)' }} />
                 </div>
-                <p className='font-medium' style={{ color: 'var(--purple-600)' }}>
+                <p
+                  className='font-medium'
+                  style={{ color: 'var(--purple-600)' }}>
                   Crear nuevo perfil
                 </p>
               </button>
@@ -192,8 +205,19 @@ export default function ProfileSelectionPage() {
                   className='w-14 h-14 rounded-full flex items-center justify-center'
                   style={{ background: 'var(--purple-50)' }}>
                   <svg width='24' height='24' viewBox='0 0 24 24' fill='none'>
-                    <circle cx='12' cy='8' r='4' stroke='#AFA9EC' strokeWidth='1.5' />
-                    <path d='M4 20c0-4 3.6-7 8-7s8 3 8 7' stroke='#AFA9EC' strokeWidth='1.5' strokeLinecap='round' />
+                    <circle
+                      cx='12'
+                      cy='8'
+                      r='4'
+                      stroke='#AFA9EC'
+                      strokeWidth='1.5'
+                    />
+                    <path
+                      d='M4 20c0-4 3.6-7 8-7s8 3 8 7'
+                      stroke='#AFA9EC'
+                      strokeWidth='1.5'
+                      strokeLinecap='round'
+                    />
                   </svg>
                 </div>
               )}
@@ -226,7 +250,9 @@ export default function ProfileSelectionPage() {
                     key={color}
                     onClick={() => setNewColor(color)}
                     className={`w-9 h-9 rounded-full transition-transform ${
-                      newColor === color ? 'scale-110 ring-2 ring-offset-2 ring-gray-400' : ''
+                      newColor === color
+                        ? 'scale-110 ring-2 ring-offset-2 ring-gray-400'
+                        : ''
                     }`}
                     style={{ background: COLOR_HEX[color] }}
                   />

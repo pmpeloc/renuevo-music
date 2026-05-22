@@ -23,14 +23,22 @@ export function usePWAInstall() {
 
     // Detectar si ya está instalada (modo standalone)
     const isStandalone =
-      ('standalone' in navigator && (navigator as unknown as { standalone: boolean }).standalone) ||
+      ('standalone' in navigator &&
+        (navigator as unknown as { standalone: boolean }).standalone) ||
       window.matchMedia('(display-mode: standalone)').matches;
-    if (isStandalone) { setInstallState('installed'); return; }
+    if (isStandalone) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setInstallState('installed');
+      return;
+    }
 
     // Detectar iOS Safari (no soporta beforeinstallprompt)
-    const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent) &&
-      !('MSStream' in window);
-    if (isIOS) { setInstallState('ios'); return; }
+    const isIOS =
+      /iphone|ipad|ipod/i.test(navigator.userAgent) && !('MSStream' in window);
+    if (isIOS) {
+      setInstallState('ios');
+      return;
+    }
 
     // El evento pudo haber llegado ANTES de que React montara —
     // lo capturamos en el script inline del layout y lo guardamos en window.__pwaPrompt

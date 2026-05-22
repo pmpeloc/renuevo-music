@@ -4,12 +4,11 @@
 // ============================================================
 
 const CACHE_NAME = 'renuevo-v3';
-const OFFLINE_URL = '/offline';
 
 // Instalación: activar inmediatamente sin esperar tabs cerradas
 self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll(['/offline']))
+    caches.open(CACHE_NAME).then((cache) => cache.addAll(['/offline'])),
   );
   // Forzar activación inmediata del nuevo SW sin esperar
   self.skipWaiting();
@@ -18,18 +17,24 @@ self.addEventListener('install', (event) => {
 // Activación: limpiar caches viejos y tomar control de todos los clientes
 self.addEventListener('activate', (event) => {
   event.waitUntil(
-    caches.keys()
+    caches
+      .keys()
       .then((keys) =>
-        Promise.all(keys.filter((k) => k !== CACHE_NAME).map((k) => caches.delete(k)))
+        Promise.all(
+          keys.filter((k) => k !== CACHE_NAME).map((k) => caches.delete(k)),
+        ),
       )
-      .then(() => self.clients.claim())  // tomar control inmediato
+      .then(() => self.clients.claim()) // tomar control inmediato
       .then(() => {
         // Avisar a todas las pestañas abiertas que hay una versión nueva → recargan
-        return self.clients.matchAll({ type: 'window', includeUncontrolled: true });
+        return self.clients.matchAll({
+          type: 'window',
+          includeUncontrolled: true,
+        });
       })
       .then((clients) => {
         clients.forEach((client) => client.postMessage({ type: 'SW_UPDATED' }));
-      })
+      }),
   );
 });
 
@@ -48,11 +53,13 @@ self.addEventListener('fetch', (event) => {
         // Guardar en caché solo respuestas válidas de mismo origen
         if (response.ok) {
           const clone = response.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
+          caches
+            .open(CACHE_NAME)
+            .then((cache) => cache.put(event.request, clone));
         }
         return response;
       })
-      .catch(() => caches.match(event.request))
+      .catch(() => caches.match(event.request)),
   );
 });
 
@@ -81,7 +88,7 @@ self.addEventListener('push', (event) => {
   };
 
   event.waitUntil(
-    self.registration.showNotification(data.title || 'Renuevo', options)
+    self.registration.showNotification(data.title || 'Renuevo', options),
   );
 });
 
@@ -90,11 +97,13 @@ self.addEventListener('notificationclick', (event) => {
   event.notification.close();
   const url = event.notification.data?.url || '/';
   event.waitUntil(
-    clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
-      for (const client of clientList) {
-        if (client.url === url && 'focus' in client) return client.focus();
-      }
-      if (clients.openWindow) return clients.openWindow(url);
-    })
+    clients
+      .matchAll({ type: 'window', includeUncontrolled: true })
+      .then((clientList) => {
+        for (const client of clientList) {
+          if (client.url === url && 'focus' in client) return client.focus();
+        }
+        if (clients.openWindow) return clients.openWindow(url);
+      }),
   );
 });
