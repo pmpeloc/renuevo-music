@@ -151,6 +151,14 @@ export default function ServiceDetailPage() {
     await notifyTeam(`${profile?.name} actualizó la lista de canciones`);
   }
 
+  function getProfileIcon(): string {
+    if (profile?.photo_url) return profile.photo_url;
+    const initials = profile?.initials ?? '?';
+    const color = profile?.color ?? 'purple';
+    const base = typeof window !== 'undefined' ? window.location.origin : '';
+    return `${base}/api/avatar?initials=${encodeURIComponent(initials)}&color=${encodeURIComponent(color)}`;
+  }
+
   async function notifyTeam(message: string) {
     try {
       await fetch('/api/push', {
@@ -160,7 +168,7 @@ export default function ServiceDetailPage() {
           title: 'Renuevo Music',
           body: message,
           url: `/service/${id}`,
-          icon: profile?.photo_url ?? undefined,
+          icon: getProfileIcon(),
           tag: `service-${id}`,
           excludeProfileId: profile?.id,
         }),
