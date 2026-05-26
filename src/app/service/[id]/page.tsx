@@ -157,9 +157,11 @@ export default function ServiceDetailPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          title: 'Renuevo — Actualización',
+          title: 'Renuevo Music',
           body: message,
           url: `/service/${id}`,
+          icon: profile?.photo_url ?? undefined,
+          tag: `service-${id}`,
           excludeProfileId: profile?.id,
         }),
       });

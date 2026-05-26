@@ -78,9 +78,11 @@ self.addEventListener('push', (event) => {
 
   const options = {
     body: data.body || '',
-    icon: '/icons/icon-192.png',
+    icon: data.icon || '/icons/icon-192.png',
     badge: '/icons/badge-72.png',
-    vibrate: [100, 50, 100],
+    vibrate: [200, 100, 200],
+    tag: data.tag || 'renuevo-general',
+    renotify: true,
     data: {
       url: data.url || '/',
     },

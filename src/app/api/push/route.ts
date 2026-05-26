@@ -11,7 +11,7 @@ webpush.setVapidDetails(
 // POST /api/push — Enviar push a todos los suscriptores (excepto el emisor)
 export async function POST(req: NextRequest) {
   try {
-    const { title, body, url, excludeProfileId } = await req.json();
+    const { title, body, url, icon, tag, excludeProfileId } = await req.json();
     const supabase = getSupabaseAdmin();
 
     let query = supabase.from('push_subscriptions').select('*');
@@ -24,7 +24,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ sent: 0 });
     }
 
-    const payload = JSON.stringify({ title, body, url });
+    const payload = JSON.stringify({ title, body, url, icon, tag });
     let sent = 0;
     const toDelete: string[] = [];
 
