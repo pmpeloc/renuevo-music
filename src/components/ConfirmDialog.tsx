@@ -8,6 +8,7 @@ type ConfirmDialogProps = {
   cancelLabel: string;
   confirmLabel: string;
   pendingLabel: string;
+  error?: string;
   pending: boolean;
   onCancel: () => void;
   onConfirm: () => void;
@@ -19,6 +20,7 @@ export default function ConfirmDialog({
   cancelLabel,
   confirmLabel,
   pendingLabel,
+  error,
   pending,
   onCancel,
   onConfirm,
@@ -53,6 +55,11 @@ export default function ConfirmDialog({
           className='mt-2 text-sm text-gray-600'>
           {description}
         </p>
+        {error && (
+          <p role='alert' className='mt-3 text-sm text-red-600'>
+            {error}
+          </p>
+        )}
         <div className='mt-5 flex gap-3'>
           <button
             type='button'

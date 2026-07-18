@@ -4,6 +4,7 @@ import { useEffect, useState, useMemo } from 'react';
 import { supabase } from '@/lib/supabase';
 import { Song, ServiceSong, Service } from '@/types';
 import AppShell from '@/components/AppShell';
+import ConfirmDialog from '@/components/ConfirmDialog';
 import { useLoading } from '@/context/LoadingContext';
 import {
   Search,
@@ -196,6 +197,7 @@ export default function CancionesPage() {
   const [activeSort, setActiveSort] = useState<SortType>('az');
   const [showSortMenu, setShowSortMenu] = useState(false);
   const [editingSong, setEditingSong] = useState<Song | null>(null);
+  const [songToDelete, setSongToDelete] = useState<Song | null>(null);
   const [deletingSongId, setDeletingSongId] = useState<string | null>(null);
   const [deleteError, setDeleteError] = useState('');
 
@@ -311,11 +313,6 @@ export default function CancionesPage() {
   }
 
   async function handleDelete(song: Song) {
-    const confirmed = window.confirm(
-      `¿Eliminar “${song.title}”? También se eliminará de las listas de servicios y su historial de tonos. Esta acción no se puede deshacer.`,
-    );
-    if (!confirmed) return;
-
     setDeletingSongId(song.id);
     setDeleteError('');
     const { error } = await supabase.from('songs').delete().eq('id', song.id);
@@ -328,6 +325,7 @@ export default function CancionesPage() {
 
     setSongs((prev) => prev.filter((item) => item.id !== song.id));
     setServiceSongs((prev) => prev.filter((item) => item.song_id !== song.id));
+    setSongToDelete(null);
   }
 
   // ── Counts for filter badges ──────────────────────────────────────────────
@@ -465,11 +463,6 @@ export default function CancionesPage() {
           className='flex-1 overflow-y-auto px-4 py-4 lg:px-6'
           style={{ background: '#F8F7FF' }}
           onClick={() => showSortMenu && setShowSortMenu(false)}>
-          {deleteError && (
-            <p role='alert' className='mb-3 text-sm text-red-600'>
-              {deleteError}
-            </p>
-          )}
           {loading ? null : sorted.length === 0 ? (
             <div className='text-center py-16'>
               <Music2
@@ -591,7 +584,8 @@ export default function CancionesPage() {
                       type='button'
                       onClick={(event) => {
                         event.stopPropagation();
-                        handleDelete(song);
+                        setDeleteError('');
+                        setSongToDelete(song);
                       }}
                       disabled={deletingSongId === song.id}
                       aria-label={`Eliminar ${song.title}`}
@@ -617,6 +611,20 @@ export default function CancionesPage() {
           song={editingSong}
           onClose={() => setEditingSong(null)}
           onSaved={handleSaved}
+        />
+      )}
+
+      {songToDelete && (
+        <ConfirmDialog
+          title='Eliminar canción'
+          description={`¿Eliminar “${songToDelete.title}”? También se eliminará de las listas de servicios y su historial de tonos. Esta acción no se puede deshacer.`}
+          cancelLabel='Cancelar'
+          confirmLabel='Eliminar'
+          pendingLabel='Eliminando…'
+          error={deleteError}
+          pending={deletingSongId === songToDelete.id}
+          onCancel={() => setSongToDelete(null)}
+          onConfirm={() => handleDelete(songToDelete)}
         />
       )}
     </AppShell>

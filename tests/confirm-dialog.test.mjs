@@ -12,4 +12,17 @@ test('confirmation dialog is accessible and non-native', () => {
   assert.match(dialog, /disabled=\{pending\}/);
   assert.match(dialog, /onCancel/);
   assert.match(dialog, /onConfirm/);
+  assert.match(dialog, /\{error &&/);
+});
+
+test('song deletion uses the confirmation dialog', () => {
+  const page = readFileSync('src/app/canciones/page.tsx', 'utf8');
+
+  assert.match(page, /import ConfirmDialog/);
+  assert.match(page, /songToDelete/);
+  assert.match(page, /<ConfirmDialog/);
+  assert.match(page, /onConfirm=\{\(\) => handleDelete\(songToDelete\)\}/);
+  assert.match(page, /historial de tonos/);
+  assert.match(page, /error=\{deleteError\}/);
+  assert.doesNotMatch(page, /(?:window\.)?confirm\s*\(/);
 });
