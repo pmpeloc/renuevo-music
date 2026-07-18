@@ -5,6 +5,11 @@ export default function ServiceWorkerRegister() {
   const [updating, setUpdating] = useState(false);
   const pendingReload = useRef(false);
 
+  function triggerReload() {
+    setUpdating(true);
+    setTimeout(() => window.location.reload(), 2000);
+  }
+
   useEffect(() => {
     if (!('serviceWorker' in navigator)) return;
 
@@ -40,11 +45,6 @@ export default function ServiceWorkerRegister() {
     navigator.serviceWorker.addEventListener('message', handleMessage);
     return () => navigator.serviceWorker.removeEventListener('message', handleMessage);
   }, []);
-
-  function triggerReload() {
-    setUpdating(true);
-    setTimeout(() => window.location.reload(), 2000);
-  }
 
   if (!updating) return null;
 
