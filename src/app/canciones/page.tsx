@@ -12,6 +12,7 @@ import {
   Clock,
   Hash,
   Pencil,
+  Trash2,
   X,
   Check,
   Loader2,
@@ -195,6 +196,8 @@ export default function CancionesPage() {
   const [activeSort, setActiveSort] = useState<SortType>('az');
   const [showSortMenu, setShowSortMenu] = useState(false);
   const [editingSong, setEditingSong] = useState<Song | null>(null);
+  const [deletingSongId, setDeletingSongId] = useState<string | null>(null);
+  const [deleteError, setDeleteError] = useState('');
 
   // ── Load data ──────────────────────────────────────────────────────────────
 
@@ -305,6 +308,26 @@ export default function CancionesPage() {
   function handleSaved(updated: Song) {
     setSongs((prev) => prev.map((s) => (s.id === updated.id ? updated : s)));
     setEditingSong(null);
+  }
+
+  async function handleDelete(song: Song) {
+    const confirmed = window.confirm(
+      `¿Eliminar “${song.title}”? También se eliminará de las listas de servicios y su historial de tonos. Esta acción no se puede deshacer.`,
+    );
+    if (!confirmed) return;
+
+    setDeletingSongId(song.id);
+    setDeleteError('');
+    const { error } = await supabase.from('songs').delete().eq('id', song.id);
+    setDeletingSongId(null);
+
+    if (error) {
+      setDeleteError('No se pudo eliminar la canción. Intentá de nuevo.');
+      return;
+    }
+
+    setSongs((prev) => prev.filter((item) => item.id !== song.id));
+    setServiceSongs((prev) => prev.filter((item) => item.song_id !== song.id));
   }
 
   // ── Counts for filter badges ──────────────────────────────────────────────
@@ -442,6 +465,11 @@ export default function CancionesPage() {
           className='flex-1 overflow-y-auto px-4 py-4 lg:px-6'
           style={{ background: '#F8F7FF' }}
           onClick={() => showSortMenu && setShowSortMenu(false)}>
+          {deleteError && (
+            <p role='alert' className='mb-3 text-sm text-red-600'>
+              {deleteError}
+            </p>
+          )}
           {loading ? null : sorted.length === 0 ? (
             <div className='text-center py-16'>
               <Music2
@@ -559,6 +587,21 @@ export default function CancionesPage() {
                         style={{ color: 'var(--purple-600)' }}
                       />
                     </div>
+                    <button
+                      type='button'
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        handleDelete(song);
+                      }}
+                      disabled={deletingSongId === song.id}
+                      aria-label={`Eliminar ${song.title}`}
+                      className='w-9 h-9 rounded-full bg-red-50 text-red-600 flex items-center justify-center disabled:opacity-50'>
+                      {deletingSongId === song.id ? (
+                        <Loader2 size={15} className='animate-spin' />
+                      ) : (
+                        <Trash2 size={15} />
+                      )}
+                    </button>
                   </div>
                 </button>
               ))}
