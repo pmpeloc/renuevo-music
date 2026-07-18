@@ -1,0 +1,4 @@
+interface:
+  display_name: "Renuevo Production QA"
+  short_description: "QA manual seguro contra producción"
+  default_prompt: "Use $renuevo-production-qa to test Renuevo Music production and clean every QA record."
