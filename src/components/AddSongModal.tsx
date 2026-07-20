@@ -120,7 +120,6 @@ export default function AddSongModal({
 
   async function saveNewSong(): Promise<Song | null> {
     if (!newTitle.trim()) return null;
-    const ytId = extractYoutubeId(newYoutube);
     const { data, error } = await supabase
       .from('songs')
       .insert({
@@ -132,14 +131,14 @@ export default function AddSongModal({
       .single();
     if (error || !data) return null;
     return data;
-    void ytId; // usado externamente si se necesita
   }
 
   async function handleSave() {
     setSaving(true);
     let song = selectedSong;
+    const createdNewSong = !song && showNewForm;
 
-    if (!song && showNewForm) {
+    if (createdNewSong) {
       song = await saveNewSong();
       if (!song) {
         setSaving(false);
@@ -154,7 +153,7 @@ export default function AddSongModal({
     }
 
     // Actualizar campos del catálogo si cambiaron (título, artista, youtube)
-    const cleanUrl = youtubeUrl.trim() || null;
+    const cleanUrl = (createdNewSong ? newYoutube : youtubeUrl).trim() || null;
     const cleanTitle = editingSong ? editTitle.trim() : song.title;
     const cleanArtist = editingSong ? (editArtist.trim() || null) : (song.artist ?? null);
     const needsCatalogUpdate =
@@ -174,12 +173,16 @@ export default function AddSongModal({
 
     let result;
     if (editingSong) {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from('service_songs')
         .update({ key: selectedKey, starts_in: startsIn, notes: notes || null })
         .eq('id', editingSong.id)
         .select('*, song:songs(*), profile:profiles(*)')
         .single();
+      if (error || !data) {
+        setSaving(false);
+        return;
+      }
       result = data;
     } else {
       // Obtener el próximo order_index
@@ -193,7 +196,7 @@ export default function AddSongModal({
       const nextIndex =
         existing && existing.length > 0 ? existing[0].order_index + 1 : 0;
 
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from('service_songs')
         .insert({
           service_id: serviceId,
@@ -206,12 +209,18 @@ export default function AddSongModal({
         })
         .select('*, song:songs(*), profile:profiles(*)')
         .single();
+      if (error || !data) {
+        setSaving(false);
+        return;
+      }
       result = data;
     }
 
-    if (result) onSaved(result);
+    if (result) {
+      onSaved(result);
+      onClose();
+    }
     setSaving(false);
-    onClose();
   }
 
   const ytId = youtubeUrl
@@ -250,7 +259,7 @@ export default function AddSongModal({
 
           <div className='px-5 py-4 space-y-5'>
             {/* ── BUSCAR EN CATÁLOGO ── */}
-            {!editingSong && (
+            {!editingSong && !showNewForm && (
               <div>
                 <label className='text-xs font-medium text-gray-500 uppercase tracking-wide mb-2 block'>
                   Buscar en el catálogo
