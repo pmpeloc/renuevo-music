@@ -30,13 +30,19 @@ await sharp({ create: { width: 72, height: 72, channels: 4, background: { r: 0, 
 
 for (const [width, height] of splashes) {
   const markSize = Math.round(Math.min(width, height) * 0.28);
+  const titleFontSize = Math.round(markSize * 0.2);
+  const subtitleFontSize = Math.round(markSize * 0.15);
+  const labelHeight = Math.round(markSize * 0.55);
+  const gap = Math.round(markSize * 0.075);
+  const titleBaseline = Math.round(labelHeight * 0.37);
+  const subtitleBaseline = Math.round(labelHeight * 0.78);
   const renderedMark = await sharp(mark).resize(markSize, markSize, { fit: 'contain' }).png().toBuffer();
-  const label = Buffer.from(`<svg width="${width}" height="180"><text x="50%" y="70" text-anchor="middle" fill="#F4F7FA" font-family="Arial, sans-serif" font-size="64" font-weight="700">Renuevo</text><text x="50%" y="132" text-anchor="middle" fill="#AAB8C7" font-family="Arial, sans-serif" font-size="48" font-weight="500">Music</text></svg>`);
-  const markTop = Math.round(height * 0.42 - markSize);
+  const label = Buffer.from(`<svg width="${width}" height="${labelHeight}"><text x="50%" y="${titleBaseline}" text-anchor="middle" fill="#F4F7FA" font-family="Arial, sans-serif" font-size="${titleFontSize}" font-weight="700">Renuevo</text><text x="50%" y="${subtitleBaseline}" text-anchor="middle" fill="#AAB8C7" font-family="Arial, sans-serif" font-size="${subtitleFontSize}" font-weight="500">Music</text></svg>`);
+  const markTop = Math.round((height - markSize - gap - labelHeight) / 2);
   await sharp({ create: { width, height, channels: 4, background } })
     .composite([
       { input: renderedMark, left: Math.round((width - markSize) / 2), top: markTop },
-      { input: label, left: 0, top: markTop + markSize + 24 },
+      { input: label, left: 0, top: markTop + markSize + gap },
     ])
     .png()
     .toFile(path.join(root, `public/splash-${width}x${height}.png`));

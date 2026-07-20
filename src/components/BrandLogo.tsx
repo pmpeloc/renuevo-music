@@ -14,7 +14,7 @@ export default function BrandLogo({
   priority = false,
 }: BrandLogoProps) {
   return (
-    <div className={`brand-lockup ${className}`.trim()}>
+    <span className={`brand-lockup ${className}`.trim()}>
       <Image
         src='/brand/renuevo-mark.svg'
         alt='Renuevo Music'
@@ -29,6 +29,6 @@ export default function BrandLogo({
           <span>Music</span>
         </span>
       )}
-    </div>
+    </span>
   );
 }

@@ -93,7 +93,9 @@ export default function ProfileSelectionPage() {
         style={{ background: 'var(--purple-900)' }}>
         {/* ── HEADER ── */}
         <div className='pt-16 pb-10 px-6 text-center'>
-          <BrandLogo className='justify-center' size={88} priority />
+          <h1>
+            <BrandLogo className='justify-center' size={88} priority />
+          </h1>
           <p className='text-sm' style={{ color: 'var(--purple-200)' }}>
             Seleccioná tu perfil para continuar
           </p>

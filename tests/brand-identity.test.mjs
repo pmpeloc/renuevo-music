@@ -15,6 +15,22 @@ async function assertNocturnalAsset(path, width, height) {
   assert.ok(bluePixels > width * height * 0.01);
 }
 
+const rasterAssets = [
+  ['public/favicon-16.png', 16, 16],
+  ['public/favicon-32.png', 32, 32],
+  ['public/icons/apple-touch-icon.png', 180, 180],
+  ['public/icons/badge-72.png', 72, 72],
+  ...[16, 32, 48, 72, 96, 128, 144, 152, 180, 192, 256, 384, 512].map((size) => [
+    `public/icons/icon-${size}.png`, size, size,
+  ]),
+  ['public/splash-750x1334.png', 750, 1334],
+  ['public/splash-1170x2532.png', 1170, 2532],
+  ['public/splash-1179x2556.png', 1179, 2556],
+  ['public/splash-1290x2796.png', 1290, 2796],
+  ['public/splash-1668x2388.png', 1668, 2388],
+  ['public/splash-2048x2732.png', 2048, 2732],
+];
+
 test('brand uses one vector mark and an accessible reusable component', () => {
   assert.equal(existsSync('public/brand/renuevo-mark.svg'), true);
   const svg = readFileSync('public/brand/renuevo-mark.svg', 'utf8');
@@ -22,10 +38,14 @@ test('brand uses one vector mark and an accessible reusable component', () => {
 
   assert.match(svg, /viewBox="0 0 112 112"/);
   assert.match(svg, /linearGradient/);
+  assert.match(svg, /<stop stop-color="#4568E8"\/>/);
+  assert.match(svg, /<stop offset="1" stop-color="#7594FF"\/>/);
+  assert.match(svg, /<path[^>]+stroke="white"/);
   assert.match(svg, /aria-hidden="true"/);
   assert.match(component, /variant\?: 'mark' \| 'lockup'/);
   assert.match(component, /alt='Renuevo Music'/);
   assert.match(component, /object-contain/);
+  assert.match(component, /return \(\s*<span className=/);
 });
 
 test('all app surfaces use the shared brand component', () => {
@@ -36,14 +56,36 @@ test('all app surfaces use the shared brand component', () => {
   assert.match(shell, /import BrandLogo from '.\/BrandLogo'/);
   assert.match(shell, /className='mobile-brand/);
   assert.match(profileSelection, /import BrandLogo from '@\/components\/BrandLogo'/);
+  assert.match(profileSelection, /<h1>\s*<BrandLogo[^>]+\/>\s*<\/h1>/);
   assert.doesNotMatch(shell + profileSelection, /renuevo-music-2\.png/);
   assert.doesNotMatch(css, /\.brand-logo\s*\{[^}]*filter:/s);
+});
+
+test('all 23 raster assets retain their exact dimensions', async () => {
+  assert.equal(rasterAssets.length, 23);
+  for (const [path, width, height] of rasterAssets) {
+    const metadata = await sharp(path).metadata();
+    assert.equal(metadata.width, width, `${path} width`);
+    assert.equal(metadata.height, height, `${path} height`);
+  }
 });
 
 test('generated icons and splash screens use the Nocturno Azul identity', async () => {
   await assertNocturnalAsset('public/icons/icon-512.png', 512, 512);
   await assertNocturnalAsset('public/splash-1170x2532.png', 1170, 2532);
   assert.equal(existsSync('src/app/favicon.ico'), false);
+});
+
+test('splash typography and spacing scale with the mark', () => {
+  const generator = readFileSync('scripts/generate-brand-assets.mjs', 'utf8');
+
+  for (const metric of ['titleFontSize', 'subtitleFontSize', 'labelHeight', 'gap']) {
+    assert.match(generator, new RegExp(`const ${metric} = Math\\.round\\(markSize \\* [^)]+\\)`));
+  }
+  assert.match(generator, /font-size="\$\{titleFontSize\}"/);
+  assert.match(generator, /font-size="\$\{subtitleFontSize\}"/);
+  assert.match(generator, /height="\$\{labelHeight\}"/);
+  assert.match(generator, /markTop \+ markSize \+ gap/);
 });
 
 test('manifest uses the Nocturno Azul install identity', () => {
