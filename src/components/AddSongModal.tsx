@@ -89,10 +89,17 @@ export default function AddSongModal({
 
   // Cargar historial de tono cuando se selecciona una canción
   useEffect(() => {
+    let cancelled = false;
+
     if (!selectedSong) {
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setKeyHistory(null);
       return;
+    }
+    if (!editingSong) {
+      setSelectedKey(null);
+      setStartsIn(null);
+      setNotes('');
     }
     supabase
       .from('song_key_history')
@@ -101,6 +108,7 @@ export default function AddSongModal({
       .eq('song_id', selectedSong.id)
       .maybeSingle()
       .then(({ data }) => {
+        if (cancelled) return;
         setKeyHistory(data);
         // Pre-setear tono del historial si no hay ya un valor
         if (data && !editingSong) {
@@ -109,6 +117,9 @@ export default function AddSongModal({
           setNotes(data.notes ?? '');
         }
       });
+    return () => {
+      cancelled = true;
+    };
   }, [selectedSong, profileId, editingSong]);
 
   function selectFromCatalog(song: Song) {
