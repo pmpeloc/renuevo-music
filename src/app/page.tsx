@@ -9,8 +9,8 @@ import {
   getActiveProfileId,
 } from '@/lib/utils';
 import Avatar from '@/components/Avatar';
+import BrandLogo from '@/components/BrandLogo';
 import ServiceWorkerRegister from '@/components/ServiceWorkerRegister';
-import Image from 'next/image';
 import { Plus, X } from 'lucide-react';
 
 export default function ProfileSelectionPage() {
@@ -93,19 +93,7 @@ export default function ProfileSelectionPage() {
         style={{ background: 'var(--purple-900)' }}>
         {/* ── HEADER ── */}
         <div className='pt-16 pb-10 px-6 text-center'>
-          <div className='w-24 h-24 rounded-3xl mx-auto mb-5 overflow-hidden shadow-lg'>
-            <Image
-              src='/renuevo-music-2.png'
-              alt='Renuevo Music'
-              width={96}
-              height={96}
-              className='w-full h-full object-cover'
-              priority
-            />
-          </div>
-          <h1 className='text-2xl font-semibold text-white mb-1'>
-            Renuevo Music
-          </h1>
+          <BrandLogo className='justify-center' size={88} priority />
           <p className='text-sm' style={{ color: 'var(--purple-200)' }}>
             Seleccioná tu perfil para continuar
           </p>

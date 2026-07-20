@@ -79,7 +79,10 @@ input::placeholder, textarea::placeholder {
 }
 
 .app-shell { background: var(--app-bg); }
-.brand-logo { filter: hue-rotate(120deg) saturate(1.15) brightness(1.08); }
+.brand-lockup { display: inline-flex; align-items: center; gap: 12px; }
+.brand-lockup__mark { flex: 0 0 auto; aspect-ratio: 1; }
+.brand-lockup__name { color: var(--text-primary); display: flex; flex-direction: column; font-size: 1rem; font-weight: 650; line-height: .96; letter-spacing: -.02em; }
+.mobile-brand { min-height: 64px; padding: 10px 20px; background: var(--sidebar); border-bottom: 1px solid var(--border); }
 .app-sidebar { background: var(--sidebar); border-right: 1px solid var(--border); }
 .app-sidebar__logo { border-bottom: 1px solid var(--border); }
 .app-nav-item { color: var(--text-secondary); min-height: 48px; }

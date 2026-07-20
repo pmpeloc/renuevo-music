@@ -2,7 +2,7 @@
 import { useRouter, usePathname } from 'next/navigation';
 import { useActiveProfile } from '@/hooks/useActiveProfile';
 import Avatar from './Avatar';
-import Image from 'next/image';
+import BrandLogo from './BrandLogo';
 import { Home, Music2, BarChart3, User } from 'lucide-react';
 
 interface AppShellProps {
@@ -46,26 +46,8 @@ export default function AppShell({ children }: AppShellProps) {
       <aside
         className='app-sidebar hidden lg:flex flex-col w-60 xl:w-64 shrink-0'>
         {/* Logo */}
-        <div
-          className='app-sidebar__logo flex items-center gap-3 px-5 py-6'>
-          <div className='w-12 h-12 rounded-2xl overflow-hidden shrink-0'>
-            <Image
-              src='/renuevo-music-2.png'
-              alt='Renuevo Music'
-              width={48}
-              height={48}
-              className='brand-logo w-full h-full object-cover'
-              priority
-            />
-          </div>
-          <div>
-            <p className='text-base font-semibold text-white leading-tight'>
-              Renuevo
-            </p>
-            <p className='text-sm' style={{ color: 'var(--text-secondary)' }}>
-              Music
-            </p>
-          </div>
+        <div className='app-sidebar__logo px-5 py-6'>
+          <BrandLogo size={52} priority />
         </div>
 
         {/* Nav items */}
@@ -106,6 +88,10 @@ export default function AppShell({ children }: AppShellProps) {
 
       {/* ── CONTENIDO + BOTTOM NAV (mobile) ── */}
       <div className='flex-1 flex flex-col min-w-0 overflow-hidden'>
+        <header className='mobile-brand lg:hidden'>
+          <BrandLogo size={36} />
+        </header>
+
         {/* Content area */}
         <div className='flex-1 min-h-0 overflow-hidden'>{children}</div>
 
