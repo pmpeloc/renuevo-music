@@ -165,10 +165,14 @@ export default function AddSongModal({
         updatePayload.title = cleanTitle || song.title;
         updatePayload.artist = cleanArtist;
       }
-      await supabase
+      const { error } = await supabase
         .from('songs')
         .update(updatePayload)
         .eq('id', song.id);
+      if (error) {
+        setSaving(false);
+        return;
+      }
     }
 
     let result;

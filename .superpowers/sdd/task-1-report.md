@@ -20,3 +20,9 @@
 ## Commit
 
 `fix: persist new song details on first save`
+
+## Follow-up: error al actualizar catálogo
+
+- RED: `node --test --test-isolation=none tests/add-song-modal.test.mjs` falló 1/4 porque el update de `songs` no capturaba `error`.
+- GREEN: el mismo comando pasó 4/4 después de detener el guardado con `setSaving(false); return;` ante ese error.
+- `npm run lint`: pasó (exit 0).
