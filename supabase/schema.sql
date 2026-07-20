@@ -77,6 +77,7 @@ create table public.song_key_history (
   song_id     uuid not null references public.songs(id) on delete cascade,
   key         text,        -- tono principal (ej: 'A', 'Bm', 'C#', 'Ebm')
   starts_in   text,        -- tono de inicio si difiere (ej: 'G')
+  notes       text,        -- notas personales (tempo, instrucciones)
   updated_at  timestamptz default now(),
   unique (profile_id, song_id)
 );
@@ -119,13 +120,14 @@ create table public.push_subscriptions (
 create or replace function public.update_song_key_history()
 returns trigger as $$
 begin
-  if new.key is not null or new.starts_in is not null then
-    insert into public.song_key_history (profile_id, song_id, key, starts_in, updated_at)
-    values (new.profile_id, new.song_id, new.key, new.starts_in, now())
+  if new.key is not null or new.starts_in is not null or new.notes is not null then
+    insert into public.song_key_history (profile_id, song_id, key, starts_in, notes, updated_at)
+    values (new.profile_id, new.song_id, new.key, new.starts_in, new.notes, now())
     on conflict (profile_id, song_id)
     do update set
-      key        = excluded.key,
-      starts_in  = excluded.starts_in,
+      key = excluded.key,
+      starts_in = excluded.starts_in,
+      notes = excluded.notes,
       updated_at = now();
   end if;
   return new;

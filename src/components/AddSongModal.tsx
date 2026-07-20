@@ -106,6 +106,7 @@ export default function AddSongModal({
         if (data && !editingSong) {
           setSelectedKey(data.key);
           setStartsIn(data.starts_in);
+          setNotes(data.notes ?? '');
         }
       });
   }, [selectedSong, profileId, editingSong]);
