@@ -276,7 +276,7 @@ export default function MetricasPage() {
       <AppShell>
         <div
           className='flex items-center justify-center h-full'
-          style={{ background: '#F8F7FF' }}>
+          style={{ background: 'var(--app-bg)' }}>
           <div
             className='w-6 h-6 border-2 rounded-full animate-spin'
             style={{
@@ -305,7 +305,7 @@ export default function MetricasPage() {
         {/* ── CONTENT ── */}
         <div
           className='flex-1 overflow-y-auto px-4 py-5 lg:px-6 lg:py-6 space-y-6'
-          style={{ background: '#F8F7FF' }}>
+          style={{ background: 'var(--app-bg)' }}>
           {/* 0. Summary pills */}
           <div className='grid grid-cols-3 gap-3'>
             {[

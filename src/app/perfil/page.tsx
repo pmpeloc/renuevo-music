@@ -318,7 +318,7 @@ export default function PerfilPage() {
       <AppShell>
         <div
           className='flex items-center justify-center h-full'
-          style={{ background: '#F8F7FF' }}>
+          style={{ background: 'var(--app-bg)' }}>
           <div
             className='w-6 h-6 border-2 rounded-full animate-spin'
             style={{
@@ -437,7 +437,7 @@ export default function PerfilPage() {
         {/* ── CONTENT ── */}
         <div
           className='flex-1 overflow-y-auto px-4 py-5 lg:px-6 space-y-5'
-          style={{ background: '#F8F7FF' }}>
+          style={{ background: 'var(--app-bg)' }}>
           {/* Photo options */}
           {hasPhoto && (
             <div className='bg-white rounded-2xl shadow-sm'>
@@ -763,7 +763,7 @@ export default function PerfilPage() {
               <button
                 onClick={() => { setShowPhotoMenu(false); setTimeout(() => fileInputRef.current?.click(), 50); }}
                 className='w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl text-left hover:bg-gray-50'
-                style={{ background: '#F8F7FF' }}>
+                style={{ background: 'var(--surface-2)' }}>
                 <div className='w-9 h-9 rounded-xl flex items-center justify-center' style={{ background: 'var(--purple-50)' }}>
                   <Upload size={16} style={{ color: 'var(--purple-600)' }} />
                 </div>

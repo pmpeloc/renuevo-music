@@ -313,7 +313,7 @@ export default function ServiceDetailPage() {
     return (
       <div
         className='h-full flex items-center justify-center'
-        style={{ background: '#F8F7FF' }}>
+        style={{ background: 'var(--app-bg)' }}>
         <div
           className='w-6 h-6 border-2 rounded-full animate-spin'
           style={{
@@ -368,7 +368,7 @@ export default function ServiceDetailPage() {
         {/* ── CONTENIDO SCROLLEABLE ── */}
         <div
           className='flex-1 overflow-y-auto'
-          style={{ background: '#F8F7FF' }}>
+          style={{ background: 'var(--app-bg)' }}>
           <div className='px-4 py-4 space-y-4 lg:px-6 lg:py-5 lg:max-w-3xl'>
             {/* ── SECCIÓN EQUIPO ── */}
             <div className='bg-white rounded-2xl overflow-hidden shadow-sm'>
@@ -659,7 +659,7 @@ export default function ServiceDetailPage() {
                     style={{
                       borderColor: 'var(--purple-200)',
                       color: 'var(--purple-600)',
-                      background: 'white',
+                      background: 'var(--surface)',
                     }}>
                     {copying ? (
                       <>
@@ -760,7 +760,9 @@ export default function ServiceDetailPage() {
                     ? 'var(--purple-600)'
                     : '#374151',
                 background:
-                  confirmWord === 'reemplazar' ? 'var(--purple-50)' : 'white',
+                  confirmWord === 'reemplazar'
+                    ? 'var(--purple-50)'
+                    : 'var(--surface-soft)',
               }}
             />
             <div className='flex gap-3'>

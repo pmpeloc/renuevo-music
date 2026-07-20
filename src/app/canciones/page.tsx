@@ -461,7 +461,7 @@ export default function CancionesPage() {
         {/* ── LIST ── */}
         <div
           className='flex-1 overflow-y-auto px-4 py-4 lg:px-6'
-          style={{ background: '#F8F7FF' }}
+          style={{ background: 'var(--app-bg)' }}
           onClick={() => showSortMenu && setShowSortMenu(false)}>
           {loading ? null : sorted.length === 0 ? (
             <div className='text-center py-16'>

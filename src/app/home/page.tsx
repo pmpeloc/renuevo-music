@@ -23,7 +23,7 @@ import {
 } from '@/lib/utils';
 import Avatar from '@/components/Avatar';
 import AppShell from '@/components/AppShell';
-import { ChevronRight, Music2, Users } from 'lucide-react';
+import { CalendarDays, ChevronRight, Music2, Users } from 'lucide-react';
 import { useLoading } from '@/context/LoadingContext';
 
 interface ServiceWithStatus {
@@ -165,11 +165,19 @@ export default function HomePage() {
   const STATUS_CONFIG = {
     complete: {
       label: 'Completo',
-      color: 'var(--purple-800)',
-      bg: 'var(--purple-50)',
+      color: 'var(--accent-secondary)',
+      bg: 'rgba(66, 200, 183, 0.12)',
     },
-    no_songs: { label: 'Sin canciones', color: '#92400e', bg: '#fef3c7' },
-    no_director: { label: 'Sin director', color: '#991b1b', bg: '#fee2e2' },
+    no_songs: {
+      label: 'Sin canciones',
+      color: 'var(--warning)',
+      bg: 'rgba(231, 182, 93, 0.12)',
+    },
+    no_director: {
+      label: 'Sin director',
+      color: 'var(--danger)',
+      bg: 'rgba(243, 111, 119, 0.12)',
+    },
     empty: { label: '', color: '', bg: '' },
   };
 
@@ -177,7 +185,7 @@ export default function HomePage() {
     return (
       <div
         className='h-full flex items-center justify-center'
-        style={{ background: '#F8F7FF' }}>
+        style={{ background: 'var(--app-bg)' }}>
         <div
           className='w-6 h-6 border-2 rounded-full animate-spin'
           style={{
@@ -195,87 +203,51 @@ export default function HomePage() {
 
   return (
     <AppShell>
-      <div className='flex flex-col h-full'>
-        {/* ── HEADER ── */}
-        <div style={{ background: 'var(--purple-900)' }}>
-          <div className='px-5 pt-5 pb-2 lg:pt-5 lg:pb-2 flex items-center justify-between'>
-            <div>
-              <p className='text-lg font-semibold text-white'>
-                Hola, {firstNameShort} 👋
-              </p>
-              <p
-                className='text-sm font-semibold capitalize mt-0.5'
-                style={{ color: 'var(--orange-600)' }}>
-                {formatMonth(visibleMonth)}
-              </p>
+      <div className='home-page flex flex-col h-full'>
+        <header className='home-header'>
+          <div className='home-header__inner'>
+            <div className='flex items-center justify-between'>
+              <div>
+                <h1 className='home-header__title'>Hola, {firstNameShort}</h1>
+                <p className='home-header__month'>{formatMonth(visibleMonth)}</p>
+              </div>
+              <button
+                onClick={() => router.push('/perfil')}
+                className='shrink-0 lg:hidden'
+                title='Mi perfil'>
+                <Avatar profile={profile} size='md' />
+              </button>
             </div>
-            {/* Avatar → navega a /perfil */}
-            <button
-              onClick={() => router.push('/perfil')}
-              className='shrink-0'
-              title='Mi perfil'>
-              <Avatar profile={profile} size='md' />
-            </button>
+
+            <div
+              ref={stripRef}
+              onScroll={handleStripScroll}
+              className='date-strip no-scrollbar'>
+              {dates.map((date, i) => {
+                const selected = isSameDay(date, selectedDate);
+                const hasEvent = hasServices(date);
+                return (
+                  <button
+                    key={i}
+                    onClick={() => setSelectedDate(date)}
+                    className={`date-strip__day ${selected ? 'date-strip__day--selected' : ''}`}>
+                    <span className='date-strip__name'>
+                      {formatDayName(date).replace('.', '')}
+                    </span>
+                    <span className='date-strip__number'>{date.getDate()}</span>
+                    {hasEvent && <span className='date-strip__dot' />}
+                  </button>
+                );
+              })}
+            </div>
           </div>
+        </header>
 
-          {/* Strip de fechas */}
-          <div
-            ref={stripRef}
-            onScroll={handleStripScroll}
-            className='flex gap-1 px-4 pt-1 pb-3 no-scrollbar overflow-x-auto'>
-            {dates.map((date, i) => {
-              const isToday = isSameDay(date, today);
-              const isSelected = isSameDay(date, selectedDate);
-              const hasEv = hasServices(date);
-              const dayName = formatDayName(date);
-              const dayNum = date.getDate();
-
-              return (
-                <button
-                  key={i}
-                  onClick={() => setSelectedDate(date)}
-                  className='flex flex-col items-center py-2 px-2 rounded-xl transition-colors shrink-0 w-12'
-                  style={
-                    isSelected
-                      ? { background: 'var(--purple-600)', color: '#fff' }
-                      : isToday
-                        ? { color: '#fff' }
-                        : { color: 'rgba(255,255,255,0.45)' }
-                  }>
-                  <span className='text-[10px] font-medium capitalize'>
-                    {dayName.replace('.', '')}
-                  </span>
-                  <span
-                    className='text-base font-semibold mt-0.5'
-                    style={
-                      isToday && !isSelected
-                        ? { color: 'var(--orange-600)' }
-                        : undefined
-                    }>
-                    {dayNum}
-                  </span>
-                  {hasEv && (
-                    <div
-                      className='w-1 h-1 rounded-full mt-1'
-                      style={{
-                        background: isSelected
-                          ? 'rgba(255,255,255,0.6)'
-                          : isToday
-                            ? 'var(--orange-600)'
-                            : 'var(--purple-200)',
-                      }}
-                    />
-                  )}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* ── CONTENIDO ── */}
-        <div
-          className='flex-1 overflow-y-auto px-4 py-4 lg:px-6 lg:py-5'
-          style={{ background: '#F8F7FF' }}>
+        <main className='home-content'>
+          <div className='home-content__inner'>
+            <h2 className='home-content__heading capitalize'>
+              Servicios del {formatDate(selectedDate)}
+            </h2>
           {!hasServices(selectedDate) ? (
             <div className='flex flex-col items-center justify-center py-20 text-center'>
               <div
@@ -301,7 +273,7 @@ export default function HomePage() {
               />
             </div>
           ) : (
-            <div className='fade-in space-y-4 lg:grid lg:grid-cols-2 lg:gap-5 lg:space-y-0'>
+            <div className='service-list fade-in'>
               {servicesForDay.map(({ service, members, songs }) => {
                 const status = getServiceStatus({ service, members, songs });
                 const cfg = STATUS_CONFIG[status];
@@ -320,97 +292,77 @@ export default function HomePage() {
                       showLoader();
                       router.push(`/service/${service.id}`);
                     }}
-                    className='w-full text-left bg-white rounded-2xl shadow-sm hover:shadow-md active:scale-[0.99] transition-all overflow-hidden'>
-                    {/* Franja superior de color */}
-                    <div
-                      className='h-1.5 w-full'
-                      style={{ background: 'var(--purple-600)' }}
-                    />
+                    className='service-card active:scale-[0.995]'>
+                    <div className='service-card__identity'>
+                      <Users aria-hidden />
+                      <span className='service-card__title'>{label}</span>
+                    </div>
 
-                    <div className='p-4'>
-                      {/* Header */}
-                      <div className='flex items-start justify-between mb-3'>
-                        <div>
-                          <p className='font-semibold text-gray-900 text-base'>
-                            {label}
-                          </p>
-                          <p className='text-xs text-gray-400 mt-0.5 capitalize'>
-                            {formatDate(selectedDate)}
-                          </p>
-                        </div>
-                        <div className='flex items-center gap-1.5'>
-                          {status !== 'empty' && cfg.label && (
-                            <span
-                              className='text-xs font-semibold px-2.5 py-1 rounded-full'
-                              style={{ background: cfg.bg, color: cfg.color }}>
-                              {cfg.label}
-                            </span>
-                          )}
-                          <ChevronRight size={16} className='text-gray-300' />
-                        </div>
+                    <div className='service-card__meta'>
+                      <div className='service-card__meta-row capitalize'>
+                        <CalendarDays size={20} aria-hidden />
+                        <span>{formatDate(selectedDate)}</span>
                       </div>
-
-                      {/* Equipo */}
-                      {directors.length > 0 || coro.length > 0 ? (
-                        <div className='flex items-center gap-3 flex-wrap'>
-                          {directors.map((m) => (
-                            <div key={m.id} className='flex items-center gap-2'>
-                              {m.profile && (
-                                <Avatar profile={m.profile} size='sm' />
-                              )}
-                              <span className='text-xs font-medium text-gray-600'>
-                                {m.profile?.name.split(' ')[0]}
-                              </span>
-                            </div>
-                          ))}
-                          {coro.length > 0 && (
-                            <>
-                              <div className='w-px h-4 bg-gray-200' />
-                              <div className='flex -space-x-1.5'>
-                                {coro.map((m) =>
-                                  m.profile ? (
-                                    <Avatar
-                                      key={m.id}
-                                      profile={m.profile}
-                                      size='sm'
-                                    />
-                                  ) : null,
-                                )}
-                              </div>
-                              <span className='text-xs text-gray-400 flex items-center gap-1'>
-                                <Users size={11} />
-                                Coro
-                              </span>
-                            </>
-                          )}
-                        </div>
-                      ) : (
-                        <p className='text-xs text-gray-300 italic'>
-                          Sin equipo asignado
-                        </p>
-                      )}
-
-                      {/* Canciones */}
-                      <div
-                        className='flex items-center gap-1.5 mt-3 pt-3'
-                        style={{ borderTop: '1px solid #F3F4F6' }}>
-                        <Music2
-                          size={12}
-                          style={{ color: 'var(--purple-200)' }}
-                        />
-                        <span className='text-xs text-gray-400'>
-                          {songs.length === 0
-                            ? 'Sin canciones cargadas'
-                            : `${songs.length} canción${songs.length !== 1 ? 'es' : ''} cargada${songs.length !== 1 ? 's' : ''}`}
+                      {status !== 'empty' && cfg.label && (
+                        <span
+                          className='service-card__status'
+                          style={{ background: cfg.bg, color: cfg.color }}>
+                          {cfg.label}
                         </span>
+                      )}
+                    </div>
+
+                    <div className='service-card__team'>
+                      <p className='service-card__team-title'>Equipo</p>
+                      {directors.map((member) => (
+                        <div key={member.id} className='service-card__person'>
+                          <span className='service-card__role'>
+                            {member.role === 'director_alabanzas'
+                              ? 'Alabanzas'
+                              : 'Adoraciones'}
+                          </span>
+                          {member.profile && <Avatar profile={member.profile} size='sm' />}
+                          <span>{member.profile?.name ?? 'Sin asignar'}</span>
+                        </div>
+                      ))}
+                      {directors.length === 0 && (
+                        <p className='text-sm text-gray-400'>Sin directores asignados</p>
+                      )}
+                      <div className='service-card__coro'>
+                        <span className='service-card__role'>Coro</span>
+                        {coro.length > 0 ? (
+                          <div className='flex -space-x-1.5'>
+                            {coro.map((member) =>
+                              member.profile ? (
+                                <Avatar key={member.id} profile={member.profile} size='sm' />
+                              ) : null,
+                            )}
+                          </div>
+                        ) : (
+                          <span className='text-sm text-gray-400'>Sin coro asignado</span>
+                        )}
                       </div>
+                    </div>
+
+                    <div className='service-card__songs'>
+                      <span className='service-card__songs-icon'>
+                        <Music2 size={21} aria-hidden />
+                      </span>
+                      <span>
+                        <span className='service-card__songs-count'>{songs.length}</span>
+                        <span className='service-card__songs-label block'>
+                          {songs.length === 1 ? 'canción' : 'canciones'}
+                        </span>
+                      </span>
+                      <ChevronRight size={24} className='ml-auto' aria-hidden />
                     </div>
                   </button>
                 );
               })}
             </div>
           )}
-        </div>
+          </div>
+        </main>
       </div>
     </AppShell>
   );
