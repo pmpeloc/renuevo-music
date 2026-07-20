@@ -45,3 +45,11 @@ test('generated icons and splash screens use the Nocturno Azul identity', async 
   await assertNocturnalAsset('public/splash-1170x2532.png', 1170, 2532);
   assert.equal(existsSync('src/app/favicon.ico'), false);
 });
+
+test('manifest uses the Nocturno Azul install identity', () => {
+  const manifest = JSON.parse(readFileSync('public/manifest.json', 'utf8'));
+  assert.equal(manifest.background_color, '#060D18');
+  assert.equal(manifest.theme_color, '#060D18');
+  assert.ok(manifest.icons.some(({ sizes }) => sizes === '192x192'));
+  assert.ok(manifest.icons.some(({ sizes }) => sizes === '512x512'));
+});

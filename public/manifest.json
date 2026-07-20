@@ -4,8 +4,8 @@
   "description": "Herramienta de coordinación para el equipo de alabanza de Iglesia El Renuevo. Organizá servicios, asigná directores, cargá canciones con tono y referencia de YouTube.",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#17181f",
-  "theme_color": "#0b8770",
+  "background_color": "#060D18",
+  "theme_color": "#060D18",
   "orientation": "portrait",
   "icons": [
     { "src": "/icons/icon-48.png",   "sizes": "48x48",   "type": "image/png" },
