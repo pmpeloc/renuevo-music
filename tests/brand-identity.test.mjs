@@ -104,3 +104,25 @@ test('manifest and Apple metadata share one versioned install identity', () => {
   assert.match(layout, /import \{ PWA_ASSET_VERSION \} from '@\/lib\/pwaIdentity'/);
   assert.equal((layout.match(/\?v=\$\{PWA_ASSET_VERSION\}/g) ?? []).length, 10);
 });
+
+test('installed Apple users see identity refresh guidance once per visual version', () => {
+  const noticePath = 'src/components/PWAIdentityUpdateNotice.tsx';
+  assert.equal(existsSync(noticePath), true);
+
+  const notice = readFileSync(noticePath, 'utf8');
+  const providers = readFileSync('src/components/Providers.tsx', 'utf8');
+
+  assert.match(notice, /import \{ PWA_ASSET_VERSION \} from '@\/lib\/pwaIdentity'/);
+  assert.match(notice, /iPhone\|iPad\|iPod/);
+  assert.match(notice, /navigator\.platform === 'MacIntel' && navigator\.maxTouchPoints > 1/);
+  assert.match(notice, /\.standalone === true/);
+  assert.match(notice, /matchMedia\('\(display-mode: standalone\)'\)\.matches/);
+  assert.match(notice, /localStorage\.getItem\(STORAGE_KEY\) !== PWA_ASSET_VERSION/);
+  assert.match(notice, /localStorage\.setItem\(STORAGE_KEY, PWA_ASSET_VERSION\)/);
+  assert.match(notice, /renuevo-pwa-identity-version/);
+  assert.match(notice, /Para actualizar el ícono y la pantalla de inicio, Apple requiere eliminar este acceso y volver a agregarlo desde Safari\./);
+  assert.match(notice, /aria-live="polite"/);
+  assert.match(notice, />\s*Entendido\s*</);
+  assert.match(providers, /import PWAIdentityUpdateNotice from '@\/components\/PWAIdentityUpdateNotice'/);
+  assert.match(providers, /<LoadingProvider>\{children\}<PWAIdentityUpdateNotice \/><\/LoadingProvider>/);
+});
