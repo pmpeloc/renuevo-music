@@ -223,7 +223,7 @@ export default function ProfileSelectionPage() {
                 value={newName}
                 onChange={(e) => setNewName(e.target.value)}
                 placeholder='Ej: Juan García'
-                className='w-full px-4 py-3 rounded-xl border border-gray-200 text-base input-ring'
+                className='w-full px-4 py-3 rounded-xl border border-gray-200 text-sm input-ring'
                 autoFocus
                 onKeyDown={(e) => e.key === 'Enter' && createProfile()}
               />

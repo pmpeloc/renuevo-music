@@ -290,7 +290,7 @@ export default function AddSongModal({
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     placeholder='Buscar canción...'
-                    className='w-full pl-9 pr-4 py-3 rounded-xl border border-gray-200 text-base focus:outline-none input-ring'
+                    className='w-full pl-9 pr-4 py-3 rounded-xl border border-gray-200 text-sm focus:outline-none input-ring'
                   />
                   {searching && (
                     <div className='absolute right-3 top-1/2 -translate-y-1/2'>
