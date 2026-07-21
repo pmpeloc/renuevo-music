@@ -99,10 +99,11 @@ Intentar la limpieza aun después de `FAIL` o de una interrupción:
 1. Ir primero a Canciones, limpiar filtros y buscar el identificador exacto.
 2. Eliminar cada canción visible solo si su título contiene exactamente el identificador. Confirmar la advertencia.
 3. Volver a Canciones, repetir la búsqueda y verificar ausencia.
-4. Ir luego a Perfil o al selector y localizar ambos perfiles por sus textos visibles vigentes del inventario: `<identificador> Perfil editado` y `<identificador> Perfil alterno`.
-5. Eliminar cada perfil del inventario solo si coincide con su texto visible vigente y demuestra pertenencia; no dar por limpio uno por haber eliminado el otro.
-6. Volver al selector/listado, buscar el identificador exacto y verificar que `<identificador> Perfil editado` y `<identificador> Perfil alterno` no aparecen.
-7. Registrar cada intento, resultado y residuo de ambos perfiles. Si no se puede eliminar o verificar cualquier dato propio, usar `FAIL-CLEANUP`.
+4. Ir luego a Perfil o al selector y recorrer cada perfil del inventario vigente, usando su último texto visible confirmado.
+5. Para el primer perfil, buscar `<identificador> Perfil editado` si el renombrado fue confirmado. Si el renombrado falla o se interrumpe antes de confirmarlo, tratar el resultado como incierto y probar ambos nombres registrados: `<identificador> Perfil editado` y `<identificador> Perfil director` como fallback. Buscar también `<identificador> Perfil alterno` si fue creado e inventariado.
+6. Eliminar cada perfil inventariado solo si el texto visible contiene exactamente el identificador y coincide con uno de sus nombres registrados; no tocar perfiles ajenos ni dar por limpio uno por haber eliminado el otro.
+7. Volver al selector/listado, buscar el identificador exacto y verificar que no aparece ningún perfil vigente del inventario.
+8. Registrar cada intento, resultado y residuo de ambos perfiles. Si no se puede eliminar o verificar cualquier dato propio, usar `FAIL-CLEANUP`.
 
 ## Resultado global
 

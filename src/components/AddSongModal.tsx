@@ -47,6 +47,7 @@ export default function AddSongModal({
   const [startsIn, setStartsIn] = useState<MusicalKey | null>(null);
   const [notes, setNotes] = useState('');
   const [keyHistory, setKeyHistory] = useState<SongKeyHistory | null>(null);
+  const [preferencesLoading, setPreferencesLoading] = useState(false);
 
   const [saving, setSaving] = useState(false);
   const [showYoutubeSearch, setShowYoutubeSearch] = useState(false);
@@ -91,38 +92,55 @@ export default function AddSongModal({
   useEffect(() => {
     let cancelled = false;
 
-    if (!selectedSong) {
+    if (!selectedSong || editingSong) {
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setKeyHistory(null);
+      setPreferencesLoading(false);
+      if (!editingSong) {
+        setSelectedKey(null);
+        setStartsIn(null);
+        setNotes('');
+      }
       return;
     }
-    if (!editingSong) {
-      setSelectedKey(null);
-      setStartsIn(null);
-      setNotes('');
-    }
-    supabase
-      .from('song_key_history')
-      .select('*')
-      .eq('profile_id', profileId)
-      .eq('song_id', selectedSong.id)
-      .maybeSingle()
-      .then(({ data }) => {
+
+    const songId = selectedSong.id;
+    setKeyHistory(null);
+    setSelectedKey(null);
+    setStartsIn(null);
+    setNotes('');
+    setPreferencesLoading(true);
+
+    async function loadPreference() {
+      try {
+        const { data } = await supabase
+          .from('song_key_history')
+          .select('*')
+          .eq('profile_id', profileId)
+          .eq('song_id', songId)
+          .maybeSingle();
         if (cancelled) return;
         setKeyHistory(data);
-        // Pre-setear tono del historial si no hay ya un valor
-        if (data && !editingSong) {
+        if (data) {
           setSelectedKey(data.key);
           setStartsIn(data.starts_in);
           setNotes(data.notes ?? '');
         }
-      });
+      } catch {
+        if (!cancelled) setKeyHistory(null);
+      } finally {
+        if (!cancelled) setPreferencesLoading(false);
+      }
+    }
+
+    void loadPreference();
     return () => {
       cancelled = true;
     };
   }, [selectedSong, profileId, editingSong]);
 
   function selectFromCatalog(song: Song) {
+    setPreferencesLoading(true);
     setSelectedSong(song);
     setYoutubeUrl(song.youtube_url ?? '');
     setSearchQuery('');
@@ -191,7 +209,7 @@ export default function AddSongModal({
     if (editingSong) {
       const { data, error } = await supabase
         .from('service_songs')
-        .update({ key: selectedKey, starts_in: startsIn, notes: notes || null })
+        .update({ key: selectedKey, starts_in: startsIn, notes: notes.trim() || null })
         .eq('id', editingSong.id)
         .select('*, song:songs(*), profile:profiles(*)')
         .single();
@@ -221,7 +239,7 @@ export default function AddSongModal({
           order_index: nextIndex,
           key: selectedKey,
           starts_in: startsIn,
-          notes: notes || null,
+          notes: notes.trim() || null,
         })
         .select('*, song:songs(*), profile:profiles(*)')
         .single();
@@ -335,6 +353,10 @@ export default function AddSongModal({
                   <button
                     onClick={() => {
                       setShowNewForm(true);
+                      setSelectedSong(null);
+                      setSelectedKey(null);
+                      setStartsIn(null);
+                      setNotes('');
                       setSearchQuery('');
                       setCatalogResults([]);
                     }}
@@ -545,12 +567,14 @@ export default function AddSongModal({
                   label='Tono (opcional)'
                   value={selectedKey}
                   onChange={setSelectedKey}
+                  disabled={preferencesLoading}
                 />
                 <KeySelector
                   label='Comienza en (opcional)'
                   value={startsIn}
                   onChange={setStartsIn}
                   hint='Si la intro comienza en un tono diferente'
+                  disabled={preferencesLoading}
                 />
                 <div>
                   <label className='text-xs font-medium text-gray-500 uppercase tracking-wide mb-2 block'>
@@ -560,6 +584,7 @@ export default function AddSongModal({
                     type='text'
                     value={notes}
                     onChange={(e) => setNotes(e.target.value)}
+                    disabled={preferencesLoading}
                     placeholder='Ej: tempo lento, a cappella al inicio...'
                     className='w-full px-4 py-3 rounded-xl border border-gray-200 text-sm focus:outline-none input-ring'
                   />
@@ -570,14 +595,16 @@ export default function AddSongModal({
             {/* ── GUARDAR ── */}
             <button
               onClick={handleSave}
-              disabled={!canSave || saving}
+              disabled={!canSave || saving || preferencesLoading}
               className='w-full py-4 rounded-2xl text-white font-semibold text-base transition-opacity disabled:opacity-40 mb-4'
               style={{ background: 'var(--purple-600)' }}>
-              {saving
-                ? 'Guardando...'
-                : editingSong
-                  ? 'Guardar cambios'
-                  : 'Agregar a la lista'}
+              {preferencesLoading
+                ? 'Cargando preferencias...'
+                : saving
+                  ? 'Guardando...'
+                  : editingSong
+                    ? 'Guardar cambios'
+                    : 'Agregar a la lista'}
             </button>
           </div>
         </div>

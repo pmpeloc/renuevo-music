@@ -13,7 +13,7 @@ Para las preferencias por perfil, crear `<identificador> Perfil director`, regis
 - No ejecutar en paralelo.
 - Eliminar únicamente elementos cuyo texto visible contenga exactamente el identificador de la ejecución.
 - Intentar y verificar la limpieza incluso cuando falle un caso funcional.
-- Inventariar y eliminar ambos perfiles QA por separado usando sus textos visibles vigentes (`<identificador> Perfil editado` y `<identificador> Perfil alterno`); luego verificar que ninguno aparece.
+- Recorrer y eliminar por separado cada perfil del inventario vigente. Si el renombrado falla o se interrumpe antes de confirmarlo, probar los dos nombres registrados (`<identificador> Perfil editado` y `<identificador> Perfil director` como fallback); tocar solo coincidencias con el identificador exacto y luego verificar que ninguna aparece.
 
 ## Resultados
 

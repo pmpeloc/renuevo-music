@@ -25,7 +25,10 @@ test('production QA covers new song and per-profile preferences', () => {
   assert.ok(directorCreation >= 0 && directorInventory > directorCreation);
   assert.ok(directorRename >= 0 && directorInventoryUpdate > directorRename);
   assert.ok(alternateCreation >= 0 && alternateInventory > alternateCreation);
+  assert.match(cleanup, /inventario vigente/i);
   assert.match(cleanup, /Perfil editado/);
   assert.match(cleanup, /Perfil alterno/);
-  assert.doesNotMatch(cleanup, /Perfil director/);
+  assert.match(cleanup, /Perfil director/);
+  assert.match(cleanup, /renombrado[^.]+(?:falla|interrumpe)/i);
+  assert.match(cleanup, /probar ambos nombres registrados/i);
 });

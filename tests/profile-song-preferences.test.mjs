@@ -13,17 +13,50 @@ test('profile song preferences include editable personal notes', () => {
   assert.match(migration, /notes\s*=\s*excluded\.notes/);
   assert.match(types, /interface SongKeyHistory[\s\S]*notes: string \| null/);
   assert.match(modal, /setNotes\(data\.notes \?\? ''\)/);
-  assert.match(modal, /\.eq\('profile_id', profileId\)[\s\S]*\.eq\('song_id', selectedSong\.id\)/);
+  assert.match(modal, /const songId = selectedSong\.id/);
+  assert.match(modal, /\.eq\('profile_id', profileId\)[\s\S]*\.eq\('song_id', songId\)/);
+});
+
+test('clears an existing preference when every optional value is null', () => {
+  for (const file of [
+    'supabase/migrations/20260720000000_profile_song_notes.sql',
+    'supabase/schema.sql',
+  ]) {
+    const sql = readFileSync(file, 'utf8');
+    assert.match(sql, /begin\s+insert into public\.song_key_history/i);
+    assert.doesNotMatch(sql, /if new\.key is not null/i);
+  }
 });
 
 test('clears the previous song preferences before loading another song', () => {
   assert.match(
     modal,
-    /if \(!editingSong\) \{[\s\S]*setSelectedKey\(null\);[\s\S]*setStartsIn\(null\);[\s\S]*setNotes\(''\);[\s\S]*\}\s*supabase/,
+    /if \(!selectedSong \|\| editingSong\) \{[\s\S]*if \(!editingSong\) \{[\s\S]*setSelectedKey\(null\);[\s\S]*setStartsIn\(null\);[\s\S]*setNotes\(''\);[\s\S]*return;/,
+  );
+  assert.match(
+    modal,
+    /setShowNewForm\(true\);\s*setSelectedSong\(null\);\s*setSelectedKey\(null\);\s*setStartsIn\(null\);\s*setNotes\(''\);/,
   );
 });
 
 test('ignores an obsolete song preference response', () => {
-  assert.match(modal, /let cancelled = false;[\s\S]*\.then\(\(\{ data \}\) => \{\s*if \(cancelled\) return;/);
+  assert.match(modal, /async function loadPreference\(\)[\s\S]*await supabase[\s\S]*\.maybeSingle\(\);\s*if \(cancelled\) return;/);
   assert.match(modal, /return \(\) => \{\s*cancelled = true;\s*\};/);
+});
+
+test('blocks preference edits and saving until preference loading settles', () => {
+  const keySelector = readFileSync('src/components/KeySelector.tsx', 'utf8');
+
+  assert.match(modal, /const \[preferencesLoading, setPreferencesLoading\] = useState\(false\)/);
+  assert.match(modal, /function selectFromCatalog\(song: Song\) \{\s*setPreferencesLoading\(true\);\s*setSelectedSong\(song\);/);
+  assert.match(modal, /setPreferencesLoading\(true\);[\s\S]*finally \{\s*if \(!cancelled\) setPreferencesLoading\(false\);/);
+  assert.equal((modal.match(/disabled=\{preferencesLoading\}/g) ?? []).length, 3);
+  assert.match(modal, /disabled=\{!canSave \|\| saving \|\| preferencesLoading\}/);
+  assert.match(modal, /preferencesLoading\s*\? 'Cargando preferencias\.\.\.'/);
+  assert.match(keySelector, /disabled\?: boolean/);
+  assert.match(keySelector, /<select[\s\S]*disabled=\{disabled\}/);
+});
+
+test('normalizes blank service-song notes to null', () => {
+  assert.equal((modal.match(/notes: notes\.trim\(\) \|\| null/g) ?? []).length, 2);
 });
