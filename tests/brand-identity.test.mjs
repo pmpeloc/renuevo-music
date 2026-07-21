@@ -88,10 +88,19 @@ test('splash typography and spacing scale with the mark', () => {
   assert.match(generator, /markTop \+ markSize \+ gap/);
 });
 
-test('manifest uses the Nocturno Azul install identity', () => {
-  const manifest = JSON.parse(readFileSync('public/manifest.json', 'utf8'));
-  assert.equal(manifest.background_color, '#060D18');
-  assert.equal(manifest.theme_color, '#060D18');
-  assert.ok(manifest.icons.some(({ sizes }) => sizes === '192x192'));
-  assert.ok(manifest.icons.some(({ sizes }) => sizes === '512x512'));
+test('manifest and Apple metadata share one versioned install identity', () => {
+  const identity = readFileSync('src/lib/pwaIdentity.ts', 'utf8');
+  const manifestRoute = readFileSync('src/app/manifest.json/route.ts', 'utf8');
+  const layout = readFileSync('src/app/layout.tsx', 'utf8');
+
+  assert.match(identity, /export const PWA_ASSET_VERSION = '20260721';/);
+  assert.match(identity, /export const PWA_INSTALL_ID = '\/';/);
+  assert.equal(existsSync('public/manifest.json'), false);
+  assert.match(manifestRoute, /id: PWA_INSTALL_ID/);
+  assert.match(manifestRoute, /Cache-Control': 'no-cache, must-revalidate'/);
+  assert.equal((manifestRoute.match(/\?v=\$\{PWA_ASSET_VERSION\}/g) ?? []).length, 10);
+  assert.match(manifestRoute, /purpose: 'any maskable'/);
+  assert.match(layout, /manifest: '\/manifest\.json'/);
+  assert.match(layout, /import \{ PWA_ASSET_VERSION \} from '@\/lib\/pwaIdentity'/);
+  assert.equal((layout.match(/\?v=\$\{PWA_ASSET_VERSION\}/g) ?? []).length, 10);
 });
