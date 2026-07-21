@@ -21,6 +21,7 @@ test('production QA covers new song and per-profile preferences', () => {
   const alternateCreation = skill.indexOf('Crear `<identificador> Perfil alterno`');
   const alternateInventory = skill.indexOf('registrarlo inmediatamente en el inventario', alternateCreation);
   const cleanup = skill.slice(skill.indexOf('## Limpieza obligatoria'));
+  const caseEight = skill.slice(skill.indexOf('8. **Eliminar perfiles**'), skill.indexOf('## Continuaci\u00f3n segura'));
 
   assert.ok(directorCreation >= 0 && directorInventory > directorCreation);
   assert.ok(directorRename >= 0 && directorInventoryUpdate > directorRename);
@@ -31,4 +32,8 @@ test('production QA covers new song and per-profile preferences', () => {
   assert.match(cleanup, /Perfil director/);
   assert.match(cleanup, /renombrado[^.]+(?:falla|interrumpe)/i);
   assert.match(cleanup, /probar ambos nombres registrados/i);
+  assert.match(caseEight, /primero[^.]+perfil director\/editado inventariado/i);
+  assert.match(caseEight, /nombre completo[^.]+verificar su ausencia/i);
+  assert.match(caseEight, /despu\u00e9s[^.]+Perfil alterno/i);
+  assert.match(caseEight, /solo despu\u00e9s[^.]+identificador exacto global/i);
 });

@@ -10,7 +10,16 @@ test('hides catalog search while creating a new song', () => {
 
 test('keeps a pasted YouTube URL on the first save', () => {
   assert.match(modal, /const createdNewSong = !song && showNewForm/);
-  assert.match(modal, /createdNewSong \? newYoutube : youtubeUrl/);
+  assert.match(modal, /createdInThisModal \? newYoutube : youtubeUrl/);
+});
+
+test('retries a created catalog song without recreating it or losing its draft', () => {
+  assert.match(modal, /const \[createdSongInModal, setCreatedSongInModal\] = useState<Song \| null>\(null\)/);
+  assert.match(modal, /let song = selectedSong \?\? createdSongInModal;\s*let createdInThisModal = !!createdSongInModal/);
+  assert.match(modal, /song = await saveNewSong\(\);[\s\S]*createdInThisModal = true;\s*setCreatedSongInModal\(song\);/);
+  assert.match(modal, /const cleanUrl = \(createdInThisModal \? newYoutube : youtubeUrl\)\.trim\(\) \|\| null/);
+  assert.match(modal, /if \(createdInThisModal\) \{\s*song = \{ \.\.\.song, youtube_url: cleanUrl \};\s*setCreatedSongInModal\(song\);\s*\}/);
+  assert.match(modal, /if \(createdSongInModal\) \{[\s\S]*return;[\s\S]*if \(!selectedSong \|\| editingSong\)/);
 });
 
 test('does not close after a failed service-song write', () => {

@@ -13,7 +13,7 @@ Para las preferencias por perfil, crear `<identificador> Perfil director`, regis
 - No ejecutar en paralelo.
 - Eliminar únicamente elementos cuyo texto visible contenga exactamente el identificador de la ejecución.
 - Intentar y verificar la limpieza incluso cuando falle un caso funcional.
-- Recorrer y eliminar por separado cada perfil del inventario vigente. Si el renombrado falla o se interrumpe antes de confirmarlo, probar los dos nombres registrados (`<identificador> Perfil editado` y `<identificador> Perfil director` como fallback); tocar solo coincidencias con el identificador exacto y luego verificar que ninguna aparece.
+- En el caso 8, eliminar primero el perfil director/editado inventariado y verificar su ausencia por nombre completo; después eliminar y verificar del mismo modo `<identificador> Perfil alterno`. Solo entonces buscar el identificador global. Si el renombrado falla o se interrumpe antes de confirmarlo, probar los dos nombres registrados (`<identificador> Perfil editado` y `<identificador> Perfil director` como fallback); tocar solo coincidencias con el identificador exacto.
 
 ## Resultados
 

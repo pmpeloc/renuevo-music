@@ -34,6 +34,7 @@ export default function AddSongModal({
   const [newArtist, setNewArtist] = useState('');
   const [newYoutube, setNewYoutube] = useState('');
   const [showNewForm, setShowNewForm] = useState(false);
+  const [createdSongInModal, setCreatedSongInModal] = useState<Song | null>(null);
 
   // YouTube de canción existente (catálogo o edición)
   const [youtubeUrl, setYoutubeUrl] = useState('');
@@ -48,6 +49,8 @@ export default function AddSongModal({
   const [notes, setNotes] = useState('');
   const [keyHistory, setKeyHistory] = useState<SongKeyHistory | null>(null);
   const [preferencesLoading, setPreferencesLoading] = useState(false);
+  const [preferencesError, setPreferencesError] = useState<string | null>(null);
+  const [preferencesReload, setPreferencesReload] = useState(0);
 
   const [saving, setSaving] = useState(false);
   const [showYoutubeSearch, setShowYoutubeSearch] = useState(false);
@@ -92,10 +95,18 @@ export default function AddSongModal({
   useEffect(() => {
     let cancelled = false;
 
-    if (!selectedSong || editingSong) {
+    if (createdSongInModal) {
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setKeyHistory(null);
       setPreferencesLoading(false);
+      setPreferencesError(null);
+      return;
+    }
+
+    if (!selectedSong || editingSong) {
+      setKeyHistory(null);
+      setPreferencesLoading(false);
+      setPreferencesError(null);
       if (!editingSong) {
         setSelectedKey(null);
         setStartsIn(null);
@@ -109,17 +120,22 @@ export default function AddSongModal({
     setSelectedKey(null);
     setStartsIn(null);
     setNotes('');
+    setPreferencesError(null);
     setPreferencesLoading(true);
 
     async function loadPreference() {
       try {
-        const { data } = await supabase
+        const { data, error } = await supabase
           .from('song_key_history')
           .select('*')
           .eq('profile_id', profileId)
           .eq('song_id', songId)
           .maybeSingle();
         if (cancelled) return;
+        if (error) {
+          setPreferencesError('No pudimos cargar tus preferencias.');
+          return;
+        }
         setKeyHistory(data);
         if (data) {
           setSelectedKey(data.key);
@@ -127,7 +143,9 @@ export default function AddSongModal({
           setNotes(data.notes ?? '');
         }
       } catch {
-        if (!cancelled) setKeyHistory(null);
+        if (!cancelled) {
+          setPreferencesError('No pudimos cargar tus preferencias.');
+        }
       } finally {
         if (!cancelled) setPreferencesLoading(false);
       }
@@ -137,10 +155,12 @@ export default function AddSongModal({
     return () => {
       cancelled = true;
     };
-  }, [selectedSong, profileId, editingSong]);
+  }, [selectedSong, profileId, editingSong, createdSongInModal, preferencesReload]);
 
   function selectFromCatalog(song: Song) {
     setPreferencesLoading(true);
+    setPreferencesError(null);
+    setCreatedSongInModal(null);
     setSelectedSong(song);
     setYoutubeUrl(song.youtube_url ?? '');
     setSearchQuery('');
@@ -165,7 +185,8 @@ export default function AddSongModal({
 
   async function handleSave() {
     setSaving(true);
-    let song = selectedSong;
+    let song = selectedSong ?? createdSongInModal;
+    let createdInThisModal = !!createdSongInModal;
     const createdNewSong = !song && showNewForm;
 
     if (createdNewSong) {
@@ -174,7 +195,8 @@ export default function AddSongModal({
         setSaving(false);
         return;
       }
-      setSelectedSong(song);
+      createdInThisModal = true;
+      setCreatedSongInModal(song);
     }
 
     if (!song) {
@@ -183,7 +205,7 @@ export default function AddSongModal({
     }
 
     // Actualizar campos del catálogo si cambiaron (título, artista, youtube)
-    const cleanUrl = (createdNewSong ? newYoutube : youtubeUrl).trim() || null;
+    const cleanUrl = (createdInThisModal ? newYoutube : youtubeUrl).trim() || null;
     const cleanTitle = editingSong ? editTitle.trim() : song.title;
     const cleanArtist = editingSong ? (editArtist.trim() || null) : (song.artist ?? null);
     const needsCatalogUpdate =
@@ -202,6 +224,10 @@ export default function AddSongModal({
       if (error) {
         setSaving(false);
         return;
+      }
+      if (createdInThisModal) {
+        song = { ...song, youtube_url: cleanUrl };
+        setCreatedSongInModal(song);
       }
     }
 
@@ -263,6 +289,7 @@ export default function AddSongModal({
       ? extractYoutubeId(selectedSong.youtube_url)
       : null;
   const canSave = !!(selectedSong || (showNewForm && newTitle.trim()));
+  const preferencesBlocked = preferencesLoading || !!preferencesError;
 
   // Título para la búsqueda de YouTube
   const youtubeSearchQuery = selectedSong?.title ?? newTitle;
@@ -353,10 +380,12 @@ export default function AddSongModal({
                   <button
                     onClick={() => {
                       setShowNewForm(true);
+                      setCreatedSongInModal(null);
                       setSelectedSong(null);
                       setSelectedKey(null);
                       setStartsIn(null);
                       setNotes('');
+                      setPreferencesError(null);
                       setSearchQuery('');
                       setCatalogResults([]);
                     }}
@@ -540,7 +569,10 @@ export default function AddSongModal({
                   )}
                 </div>
                 <button
-                  onClick={() => setShowNewForm(false)}
+                  onClick={() => {
+                    setShowNewForm(false);
+                    setCreatedSongInModal(null);
+                  }}
                   className='text-xs text-gray-400 underline'>
                   Cancelar
                 </button>
@@ -563,18 +595,29 @@ export default function AddSongModal({
                     </p>
                   </div>
                 )}
+                {preferencesError && (
+                  <div role='alert' className='p-3 bg-red-50 rounded-xl text-sm text-red-700'>
+                    <p>No pudimos cargar tus preferencias.</p>
+                    <button
+                      type='button'
+                      onClick={() => setPreferencesReload((value) => value + 1)}
+                      className='mt-2 font-semibold underline'>
+                      Reintentar
+                    </button>
+                  </div>
+                )}
                 <KeySelector
                   label='Tono (opcional)'
                   value={selectedKey}
                   onChange={setSelectedKey}
-                  disabled={preferencesLoading}
+                  disabled={preferencesBlocked}
                 />
                 <KeySelector
                   label='Comienza en (opcional)'
                   value={startsIn}
                   onChange={setStartsIn}
                   hint='Si la intro comienza en un tono diferente'
-                  disabled={preferencesLoading}
+                  disabled={preferencesBlocked}
                 />
                 <div>
                   <label className='text-xs font-medium text-gray-500 uppercase tracking-wide mb-2 block'>
@@ -584,7 +627,7 @@ export default function AddSongModal({
                     type='text'
                     value={notes}
                     onChange={(e) => setNotes(e.target.value)}
-                    disabled={preferencesLoading}
+                    disabled={preferencesBlocked}
                     placeholder='Ej: tempo lento, a cappella al inicio...'
                     className='w-full px-4 py-3 rounded-xl border border-gray-200 text-sm focus:outline-none input-ring'
                   />
@@ -595,7 +638,7 @@ export default function AddSongModal({
             {/* ── GUARDAR ── */}
             <button
               onClick={handleSave}
-              disabled={!canSave || saving || preferencesLoading}
+              disabled={!canSave || saving || preferencesBlocked}
               className='w-full py-4 rounded-2xl text-white font-semibold text-base transition-opacity disabled:opacity-40 mb-4'
               style={{ background: 'var(--purple-600)' }}>
               {preferencesLoading

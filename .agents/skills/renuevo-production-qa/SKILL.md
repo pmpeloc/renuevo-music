@@ -82,11 +82,11 @@ Registrar cada caso como `PASS`, `FAIL` o `SKIP`, con pasos breves, esperado y o
    - Volver al servicio usado y verificar que la canción QA ya no aparece.
    - Volver a Canciones, limpiar filtros, buscar el identificador exacto y verificar ausencia.
 
-8. **Eliminar perfil**
-   - En Perfil, abrir la baja del perfil QA.
-   - Confirmar por el nombre/identificador cuando la UI lo solicite.
-   - Eliminarlo y volver al selector de perfiles.
-   - Buscar visualmente el identificador exacto y verificar ausencia.
+8. **Eliminar perfiles**
+   - Eliminar primero el perfil director/editado inventariado: abrir su baja en Perfil, confirmar por su nombre completo vigente y volver al selector.
+   - Buscar ese nombre completo y verificar su ausencia antes de continuar.
+   - Eliminar después `<identificador> Perfil alterno` con la misma secuencia y verificar su ausencia por nombre completo.
+   - Solo después buscar el identificador exacto global y verificar que no aparece ningún perfil propio.
 
 ## Continuación segura
 

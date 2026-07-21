@@ -35,7 +35,7 @@ test('clears the previous song preferences before loading another song', () => {
   );
   assert.match(
     modal,
-    /setShowNewForm\(true\);\s*setSelectedSong\(null\);\s*setSelectedKey\(null\);\s*setStartsIn\(null\);\s*setNotes\(''\);/,
+    /setShowNewForm\(true\);\s*setCreatedSongInModal\(null\);\s*setSelectedSong\(null\);\s*setSelectedKey\(null\);\s*setStartsIn\(null\);\s*setNotes\(''\);/,
   );
 });
 
@@ -48,13 +48,22 @@ test('blocks preference edits and saving until preference loading settles', () =
   const keySelector = readFileSync('src/components/KeySelector.tsx', 'utf8');
 
   assert.match(modal, /const \[preferencesLoading, setPreferencesLoading\] = useState\(false\)/);
-  assert.match(modal, /function selectFromCatalog\(song: Song\) \{\s*setPreferencesLoading\(true\);\s*setSelectedSong\(song\);/);
+  assert.match(modal, /function selectFromCatalog\(song: Song\) \{[\s\S]*?setPreferencesLoading\(true\);[\s\S]*?setSelectedSong\(song\);/);
   assert.match(modal, /setPreferencesLoading\(true\);[\s\S]*finally \{\s*if \(!cancelled\) setPreferencesLoading\(false\);/);
-  assert.equal((modal.match(/disabled=\{preferencesLoading\}/g) ?? []).length, 3);
-  assert.match(modal, /disabled=\{!canSave \|\| saving \|\| preferencesLoading\}/);
+  assert.equal((modal.match(/disabled=\{preferencesBlocked\}/g) ?? []).length, 3);
+  assert.match(modal, /disabled=\{!canSave \|\| saving \|\| preferencesBlocked\}/);
   assert.match(modal, /preferencesLoading\s*\? 'Cargando preferencias\.\.\.'/);
   assert.match(keySelector, /disabled\?: boolean/);
   assert.match(keySelector, /<select[\s\S]*disabled=\{disabled\}/);
+});
+
+test('keeps preferences blocked and offers retry when history loading fails', () => {
+  assert.match(modal, /const \[preferencesError, setPreferencesError\] = useState<string \| null>\(null\)/);
+  assert.match(modal, /const \{ data, error \} = await supabase[\s\S]*if \(error\) \{[\s\S]*setPreferencesError\(/);
+  assert.match(modal, /const preferencesBlocked = preferencesLoading \|\| !!preferencesError/);
+  assert.match(modal, /role='alert'[\s\S]*No pudimos cargar tus preferencias[\s\S]*Reintentar/);
+  assert.match(modal, /setPreferencesReload\(\(value\) => value \+ 1\)/);
+  assert.match(modal, /\[selectedSong, profileId, editingSong, createdSongInModal, preferencesReload\]/);
 });
 
 test('normalizes blank service-song notes to null', () => {
