@@ -464,7 +464,7 @@ export default function CancionesPage() {
           style={{ background: 'var(--app-bg)' }}
           onClick={() => showSortMenu && setShowSortMenu(false)}>
           {loading ? null : sorted.length === 0 ? (
-            <div className='text-center py-16'>
+            <div className='text-center py-10'>
               <Music2
                 size={32}
                 className='mx-auto mb-3'
