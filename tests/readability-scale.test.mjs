@@ -29,3 +29,8 @@ test('keeps form fields on the compact reading scale', () => {
     }
   }
 });
+
+test('keeps the editable profile name touch height', () => {
+  const profile = readFileSync('src/app/perfil/page.tsx', 'utf8');
+  assert.match(profile, /<input\b[\s\S]*?value=\{nameValue\}[\s\S]*?className='[^']*\bmin-h-8\b[^']*'/);
+});
