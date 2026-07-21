@@ -50,6 +50,7 @@ export default function HomePage() {
   const [loadingServices, setLoadingServices] = useState(false);
 
   const stripRef = useRef<HTMLDivElement>(null);
+  const todayRef = useRef<HTMLButtonElement>(null);
 
   const ensureWeeklyServices = useCallback(async (date: Date) => {
     const monday = getMondayOfWeek(date);
@@ -128,14 +129,15 @@ export default function HomePage() {
   }, [selectedDate, loadServicesForDay, ensureWeeklyServices]);
 
   useEffect(() => {
-    if (profileLoading || !stripRef.current) return;
-    const todayIndex = dates.findIndex((d) => isSameDay(d, today));
-    const itemWidth = 52;
-    const containerWidth = stripRef.current.clientWidth;
+    const strip = stripRef.current;
+    const todayButton = todayRef.current;
+    if (profileLoading || !strip || !todayButton) return;
+
     const scrollTo =
-      todayIndex * itemWidth - containerWidth / 2 + itemWidth / 2;
-    stripRef.current.scrollLeft = Math.max(0, scrollTo);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+      todayButton.offsetLeft -
+      strip.clientWidth / 2 +
+      todayButton.offsetWidth / 2;
+    strip.scrollLeft = Math.max(0, scrollTo);
   }, [profileLoading]);
 
   function handleStripScroll() {
@@ -229,6 +231,7 @@ export default function HomePage() {
                 return (
                   <button
                     key={i}
+                    ref={isSameDay(date, today) ? todayRef : undefined}
                     onClick={() => setSelectedDate(date)}
                     className={`date-strip__day ${selected ? 'date-strip__day--selected' : ''}`}>
                     <span className='date-strip__name'>
