@@ -6,12 +6,13 @@ interface KeySelectorProps {
   value: MusicalKey | null;
   onChange: (key: MusicalKey | null) => void;
   hint?: string;
+  disabled?: boolean;
 }
 
 const MAJOR_KEYS = MUSICAL_KEYS.slice(0, 12);
 const MINOR_KEYS = MUSICAL_KEYS.slice(12);
 
-export default function KeySelector({ label, value, onChange, hint }: KeySelectorProps) {
+export default function KeySelector({ label, value, onChange, hint, disabled }: KeySelectorProps) {
   return (
     <div>
       <label className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-2 block">
@@ -19,8 +20,9 @@ export default function KeySelector({ label, value, onChange, hint }: KeySelecto
       </label>
       <select
         value={value ?? ''}
+        disabled={disabled}
         onChange={(e) => onChange((e.target.value as MusicalKey) || null)}
-        className="w-full px-4 py-3 rounded-xl border border-gray-200 text-base bg-white focus:outline-none input-ring text-gray-900"
+        className="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm bg-white focus:outline-none input-ring text-gray-900 disabled:opacity-50"
       >
         <option value="">— Sin especificar —</option>
         <optgroup label="Tonos mayores">

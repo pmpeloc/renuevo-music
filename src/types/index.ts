@@ -83,6 +83,7 @@ export interface SongKeyHistory {
   song_id: string;
   key: MusicalKey | null;
   starts_in: MusicalKey | null;
+  notes: string | null;
   updated_at: string;
 }
 

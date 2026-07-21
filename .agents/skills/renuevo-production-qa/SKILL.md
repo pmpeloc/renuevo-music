@@ -22,7 +22,7 @@ Validar Renuevo Music en producción mediante la UI visible y dejar cero datos p
 1. Obtener la fecha y hora UTC al iniciar.
 2. Formar `QA_AUTOMATION_<timestamp>`, donde `timestamp` usa `YYYYMMDDTHHMMSSZ`.
 3. Reutilizar el mismo identificador sin cambios en todos los datos y en el reporte.
-4. Nombrar el perfil `<identificador> Perfil` y la canción `<identificador> Canción`. Las ediciones deben conservar el identificador exacto.
+4. Nombrar los perfiles `<identificador> Perfil director` y `<identificador> Perfil alterno`, y la canción `<identificador> Canción`. Ambos perfiles deben llevar el identificador exacto y tener nombres distintos. Las ediciones deben conservar el identificador exacto.
 
 ## Preflight
 
@@ -37,7 +37,8 @@ Validar Renuevo Music en producción mediante la UI visible y dejar cero datos p
 Registrar cada caso como `PASS`, `FAIL` o `SKIP`, con pasos breves, esperado y observado.
 
 1. **Crear y seleccionar perfil**
-   - Crear `<identificador> Perfil` desde el selector.
+   - Crear `<identificador> Perfil director` desde el selector.
+   - Tras crearlo, registrarlo inmediatamente en el inventario con tipo `perfil`, texto visible exacto `<identificador> Perfil director`, URL y estado de limpieza.
    - Confirmar que aparece y seleccionarlo.
    - Esperar Inicio y el nombre del perfil activo.
 
@@ -49,7 +50,7 @@ Registrar cada caso como `PASS`, `FAIL` o `SKIP`, con pasos breves, esperado y o
 3. **Editar perfil**
    - En Perfil, cambiar el nombre a `<identificador> Perfil editado`.
    - Cambiar color o instrumento mediante controles visibles y guardar.
-   - Recargar o volver a Perfil y confirmar que el identificador y la edición persisten.
+   - Recargar o volver a Perfil y confirmar que el identificador y la edición persisten; actualizar inmediatamente su registro del inventario con el texto visible exacto `<identificador> Perfil editado`.
 
 4. **Asignar rol en un servicio**
    - Desde Inicio, abrir un servicio visible.
@@ -59,8 +60,12 @@ Registrar cada caso como `PASS`, `FAIL` o `SKIP`, con pasos breves, esperado y o
 
 5. **Crear, editar y usar canción**
    - En el servicio, agregar una canción nueva titulada `<identificador> Canción`.
-   - Completar solo campos visibles opcionales con valores que conserven el identificador cuando sean texto libre.
-   - Asignar tono/comienzo o notas si la UI lo permite y confirmar que aparece en la lista del servicio.
+   - Activar «Crear canción nueva» y confirmar que el buscador del catálogo no se muestra.
+   - Pegar un enlace de YouTube visible de prueba, guardar una sola vez, volver a editar y confirmar que persiste.
+   - Guardar tono y comentario personal con `<identificador> Perfil editado`; reabrir y confirmar la precarga editable.
+   - Crear `<identificador> Perfil alterno` como segundo perfil QA con el mismo identificador.
+   - Tras crearlo, registrarlo inmediatamente en el inventario con tipo `perfil`, texto visible exacto `<identificador> Perfil alterno`, URL y estado de limpieza; asignarlo como director sin reemplazar integrantes existentes.
+   - Guardar tono y comentario distintos para la misma canción con el segundo perfil QA. Alternar entre ambos perfiles directores y confirmar que cada uno recupera únicamente sus valores.
    - Abrir Canciones, buscar el identificador exacto y editar el título a `<identificador> Canción editada`.
    - Volver al servicio y confirmar que la canción QA sigue asociada. No editar canciones preexistentes.
 
@@ -77,11 +82,11 @@ Registrar cada caso como `PASS`, `FAIL` o `SKIP`, con pasos breves, esperado y o
    - Volver al servicio usado y verificar que la canción QA ya no aparece.
    - Volver a Canciones, limpiar filtros, buscar el identificador exacto y verificar ausencia.
 
-8. **Eliminar perfil**
-   - En Perfil, abrir la baja del perfil QA.
-   - Confirmar por el nombre/identificador cuando la UI lo solicite.
-   - Eliminarlo y volver al selector de perfiles.
-   - Buscar visualmente el identificador exacto y verificar ausencia.
+8. **Eliminar perfiles**
+   - Eliminar primero el perfil director/editado inventariado: abrir su baja en Perfil, confirmar por su nombre completo vigente y volver al selector.
+   - Buscar ese nombre completo y verificar su ausencia antes de continuar.
+   - Eliminar después `<identificador> Perfil alterno` con la misma secuencia y verificar su ausencia por nombre completo.
+   - Solo después buscar el identificador exacto global y verificar que no aparece ningún perfil propio.
 
 ## Continuación segura
 
@@ -94,10 +99,11 @@ Intentar la limpieza aun después de `FAIL` o de una interrupción:
 1. Ir primero a Canciones, limpiar filtros y buscar el identificador exacto.
 2. Eliminar cada canción visible solo si su título contiene exactamente el identificador. Confirmar la advertencia.
 3. Volver a Canciones, repetir la búsqueda y verificar ausencia.
-4. Ir luego a Perfil o al selector y localizar el perfil con el identificador exacto.
-5. Eliminarlo solo si el texto visible demuestra pertenencia.
-6. Volver al selector/listado y verificar ausencia.
-7. Registrar cada intento, resultado y residuo. Si no se puede eliminar o verificar cualquier dato propio, usar `FAIL-CLEANUP`.
+4. Ir luego a Perfil o al selector y recorrer cada perfil del inventario vigente, usando su último texto visible confirmado.
+5. Para el primer perfil, buscar `<identificador> Perfil editado` si el renombrado fue confirmado. Si el renombrado falla o se interrumpe antes de confirmarlo, tratar el resultado como incierto y probar ambos nombres registrados: `<identificador> Perfil editado` y `<identificador> Perfil director` como fallback. Buscar también `<identificador> Perfil alterno` si fue creado e inventariado.
+6. Eliminar cada perfil inventariado solo si el texto visible contiene exactamente el identificador y coincide con uno de sus nombres registrados; no tocar perfiles ajenos ni dar por limpio uno por haber eliminado el otro.
+7. Volver al selector/listado, buscar el identificador exacto y verificar que no aparece ningún perfil vigente del inventario.
+8. Registrar cada intento, resultado y residuo de ambos perfiles. Si no se puede eliminar o verificar cualquier dato propio, usar `FAIL-CLEANUP`.
 
 ## Resultado global
 

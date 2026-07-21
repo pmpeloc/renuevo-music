@@ -34,6 +34,7 @@ export default function AddSongModal({
   const [newArtist, setNewArtist] = useState('');
   const [newYoutube, setNewYoutube] = useState('');
   const [showNewForm, setShowNewForm] = useState(false);
+  const [createdSongInModal, setCreatedSongInModal] = useState<Song | null>(null);
 
   // YouTube de canción existente (catálogo o edición)
   const [youtubeUrl, setYoutubeUrl] = useState('');
@@ -47,6 +48,9 @@ export default function AddSongModal({
   const [startsIn, setStartsIn] = useState<MusicalKey | null>(null);
   const [notes, setNotes] = useState('');
   const [keyHistory, setKeyHistory] = useState<SongKeyHistory | null>(null);
+  const [preferencesLoading, setPreferencesLoading] = useState(false);
+  const [preferencesError, setPreferencesError] = useState<string | null>(null);
+  const [preferencesReload, setPreferencesReload] = useState(0);
 
   const [saving, setSaving] = useState(false);
   const [showYoutubeSearch, setShowYoutubeSearch] = useState(false);
@@ -89,28 +93,74 @@ export default function AddSongModal({
 
   // Cargar historial de tono cuando se selecciona una canción
   useEffect(() => {
-    if (!selectedSong) {
+    let cancelled = false;
+
+    if (createdSongInModal) {
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setKeyHistory(null);
+      setPreferencesLoading(false);
+      setPreferencesError(null);
       return;
     }
-    supabase
-      .from('song_key_history')
-      .select('*')
-      .eq('profile_id', profileId)
-      .eq('song_id', selectedSong.id)
-      .maybeSingle()
-      .then(({ data }) => {
+
+    if (!selectedSong || editingSong) {
+      setKeyHistory(null);
+      setPreferencesLoading(false);
+      setPreferencesError(null);
+      if (!editingSong) {
+        setSelectedKey(null);
+        setStartsIn(null);
+        setNotes('');
+      }
+      return;
+    }
+
+    const songId = selectedSong.id;
+    setKeyHistory(null);
+    setSelectedKey(null);
+    setStartsIn(null);
+    setNotes('');
+    setPreferencesError(null);
+    setPreferencesLoading(true);
+
+    async function loadPreference() {
+      try {
+        const { data, error } = await supabase
+          .from('song_key_history')
+          .select('*')
+          .eq('profile_id', profileId)
+          .eq('song_id', songId)
+          .maybeSingle();
+        if (cancelled) return;
+        if (error) {
+          setPreferencesError('No pudimos cargar tus preferencias.');
+          return;
+        }
         setKeyHistory(data);
-        // Pre-setear tono del historial si no hay ya un valor
-        if (data && !editingSong) {
+        if (data) {
           setSelectedKey(data.key);
           setStartsIn(data.starts_in);
+          setNotes(data.notes ?? '');
         }
-      });
-  }, [selectedSong, profileId, editingSong]);
+      } catch {
+        if (!cancelled) {
+          setPreferencesError('No pudimos cargar tus preferencias.');
+        }
+      } finally {
+        if (!cancelled) setPreferencesLoading(false);
+      }
+    }
+
+    void loadPreference();
+    return () => {
+      cancelled = true;
+    };
+  }, [selectedSong, profileId, editingSong, createdSongInModal, preferencesReload]);
 
   function selectFromCatalog(song: Song) {
+    setPreferencesLoading(true);
+    setPreferencesError(null);
+    setCreatedSongInModal(null);
     setSelectedSong(song);
     setYoutubeUrl(song.youtube_url ?? '');
     setSearchQuery('');
@@ -120,7 +170,6 @@ export default function AddSongModal({
 
   async function saveNewSong(): Promise<Song | null> {
     if (!newTitle.trim()) return null;
-    const ytId = extractYoutubeId(newYoutube);
     const { data, error } = await supabase
       .from('songs')
       .insert({
@@ -132,20 +181,22 @@ export default function AddSongModal({
       .single();
     if (error || !data) return null;
     return data;
-    void ytId; // usado externamente si se necesita
   }
 
   async function handleSave() {
     setSaving(true);
-    let song = selectedSong;
+    let song = selectedSong ?? createdSongInModal;
+    let createdInThisModal = !!createdSongInModal;
+    const createdNewSong = !song && showNewForm;
 
-    if (!song && showNewForm) {
+    if (createdNewSong) {
       song = await saveNewSong();
       if (!song) {
         setSaving(false);
         return;
       }
-      setSelectedSong(song);
+      createdInThisModal = true;
+      setCreatedSongInModal(song);
     }
 
     if (!song) {
@@ -154,7 +205,7 @@ export default function AddSongModal({
     }
 
     // Actualizar campos del catálogo si cambiaron (título, artista, youtube)
-    const cleanUrl = youtubeUrl.trim() || null;
+    const cleanUrl = (createdInThisModal ? newYoutube : youtubeUrl).trim() || null;
     const cleanTitle = editingSong ? editTitle.trim() : song.title;
     const cleanArtist = editingSong ? (editArtist.trim() || null) : (song.artist ?? null);
     const needsCatalogUpdate =
@@ -166,20 +217,32 @@ export default function AddSongModal({
         updatePayload.title = cleanTitle || song.title;
         updatePayload.artist = cleanArtist;
       }
-      await supabase
+      const { error } = await supabase
         .from('songs')
         .update(updatePayload)
         .eq('id', song.id);
+      if (error) {
+        setSaving(false);
+        return;
+      }
+      if (createdInThisModal) {
+        song = { ...song, youtube_url: cleanUrl };
+        setCreatedSongInModal(song);
+      }
     }
 
     let result;
     if (editingSong) {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from('service_songs')
-        .update({ key: selectedKey, starts_in: startsIn, notes: notes || null })
+        .update({ key: selectedKey, starts_in: startsIn, notes: notes.trim() || null })
         .eq('id', editingSong.id)
         .select('*, song:songs(*), profile:profiles(*)')
         .single();
+      if (error || !data) {
+        setSaving(false);
+        return;
+      }
       result = data;
     } else {
       // Obtener el próximo order_index
@@ -193,7 +256,7 @@ export default function AddSongModal({
       const nextIndex =
         existing && existing.length > 0 ? existing[0].order_index + 1 : 0;
 
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from('service_songs')
         .insert({
           service_id: serviceId,
@@ -202,16 +265,22 @@ export default function AddSongModal({
           order_index: nextIndex,
           key: selectedKey,
           starts_in: startsIn,
-          notes: notes || null,
+          notes: notes.trim() || null,
         })
         .select('*, song:songs(*), profile:profiles(*)')
         .single();
+      if (error || !data) {
+        setSaving(false);
+        return;
+      }
       result = data;
     }
 
-    if (result) onSaved(result);
+    if (result) {
+      onSaved(result);
+      onClose();
+    }
     setSaving(false);
-    onClose();
   }
 
   const ytId = youtubeUrl
@@ -220,6 +289,7 @@ export default function AddSongModal({
       ? extractYoutubeId(selectedSong.youtube_url)
       : null;
   const canSave = !!(selectedSong || (showNewForm && newTitle.trim()));
+  const preferencesBlocked = preferencesLoading || !!preferencesError;
 
   // Título para la búsqueda de YouTube
   const youtubeSearchQuery = selectedSong?.title ?? newTitle;
@@ -250,7 +320,7 @@ export default function AddSongModal({
 
           <div className='px-5 py-4 space-y-5'>
             {/* ── BUSCAR EN CATÁLOGO ── */}
-            {!editingSong && (
+            {!editingSong && !showNewForm && (
               <div>
                 <label className='text-xs font-medium text-gray-500 uppercase tracking-wide mb-2 block'>
                   Buscar en el catálogo
@@ -265,7 +335,7 @@ export default function AddSongModal({
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     placeholder='Buscar canción...'
-                    className='w-full pl-9 pr-4 py-3 rounded-xl border border-gray-200 text-base focus:outline-none input-ring'
+                    className='w-full pl-9 pr-4 py-3 rounded-xl border border-gray-200 text-sm focus:outline-none input-ring'
                   />
                   {searching && (
                     <div className='absolute right-3 top-1/2 -translate-y-1/2'>
@@ -310,6 +380,12 @@ export default function AddSongModal({
                   <button
                     onClick={() => {
                       setShowNewForm(true);
+                      setCreatedSongInModal(null);
+                      setSelectedSong(null);
+                      setSelectedKey(null);
+                      setStartsIn(null);
+                      setNotes('');
+                      setPreferencesError(null);
                       setSearchQuery('');
                       setCatalogResults([]);
                     }}
@@ -353,7 +429,7 @@ export default function AddSongModal({
                           value={editArtist}
                           onChange={(e) => setEditArtist(e.target.value)}
                           placeholder='Artista (opcional)'
-                          className='w-full px-2 py-1 rounded-lg border border-gray-200 text-xs focus:outline-none input-ring'
+                          className='w-full px-2 py-1 rounded-lg border border-gray-200 text-sm focus:outline-none input-ring'
                           style={{ color: 'var(--purple-600)' }}
                         />
                       </div>
@@ -493,7 +569,10 @@ export default function AddSongModal({
                   )}
                 </div>
                 <button
-                  onClick={() => setShowNewForm(false)}
+                  onClick={() => {
+                    setShowNewForm(false);
+                    setCreatedSongInModal(null);
+                  }}
                   className='text-xs text-gray-400 underline'>
                   Cancelar
                 </button>
@@ -516,16 +595,29 @@ export default function AddSongModal({
                     </p>
                   </div>
                 )}
+                {preferencesError && (
+                  <div role='alert' className='p-3 bg-red-50 rounded-xl text-sm text-red-700'>
+                    <p>No pudimos cargar tus preferencias.</p>
+                    <button
+                      type='button'
+                      onClick={() => setPreferencesReload((value) => value + 1)}
+                      className='mt-2 font-semibold underline'>
+                      Reintentar
+                    </button>
+                  </div>
+                )}
                 <KeySelector
                   label='Tono (opcional)'
                   value={selectedKey}
                   onChange={setSelectedKey}
+                  disabled={preferencesBlocked}
                 />
                 <KeySelector
                   label='Comienza en (opcional)'
                   value={startsIn}
                   onChange={setStartsIn}
                   hint='Si la intro comienza en un tono diferente'
+                  disabled={preferencesBlocked}
                 />
                 <div>
                   <label className='text-xs font-medium text-gray-500 uppercase tracking-wide mb-2 block'>
@@ -535,6 +627,7 @@ export default function AddSongModal({
                     type='text'
                     value={notes}
                     onChange={(e) => setNotes(e.target.value)}
+                    disabled={preferencesBlocked}
                     placeholder='Ej: tempo lento, a cappella al inicio...'
                     className='w-full px-4 py-3 rounded-xl border border-gray-200 text-sm focus:outline-none input-ring'
                   />
@@ -545,14 +638,16 @@ export default function AddSongModal({
             {/* ── GUARDAR ── */}
             <button
               onClick={handleSave}
-              disabled={!canSave || saving}
+              disabled={!canSave || saving || preferencesBlocked}
               className='w-full py-4 rounded-2xl text-white font-semibold text-base transition-opacity disabled:opacity-40 mb-4'
               style={{ background: 'var(--purple-600)' }}>
-              {saving
-                ? 'Guardando...'
-                : editingSong
-                  ? 'Guardar cambios'
-                  : 'Agregar a la lista'}
+              {preferencesLoading
+                ? 'Cargando preferencias...'
+                : saving
+                  ? 'Guardando...'
+                  : editingSong
+                    ? 'Guardar cambios'
+                    : 'Agregar a la lista'}
             </button>
           </div>
         </div>
