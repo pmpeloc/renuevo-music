@@ -348,7 +348,7 @@ Expected:
 
 - [ ] **Step 3: Perform platform smoke checks after deployment**
 
-On Android Chrome, open the deployed PWA, close all PWA windows, and confirm the manifest in `chrome://web-app-internals` or `about:webapks` reports the current versioned icon URL. The launcher update may be delayed by WebAPK scheduling.
+On Android Chrome 144, open the deployed PWA. When Chrome presents “Review app update”, accept it, then confirm the launcher reflects the refreshed identity and the manifest in `chrome://web-app-internals` or `about:webapks` reports the current versioned icon URL.
 
 On an already-installed iPhone/iPad PWA, confirm the notice appears once, dismiss it, relaunch, and confirm it stays dismissed. Remove and reinstall the PWA from Safari, then confirm the new icon and startup image are used.
 

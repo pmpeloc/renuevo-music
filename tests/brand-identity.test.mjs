@@ -122,6 +122,9 @@ test('installed Apple users see identity refresh guidance once per visual versio
   assert.match(notice, /renuevo-pwa-identity-version/);
   assert.match(notice, /Para actualizar el ícono y la pantalla de inicio, Apple requiere eliminar este acceso y volver a agregarlo desde Safari\./);
   assert.match(notice, /aria-live="polite"/);
+  assert.match(notice, /bottom-\[calc\(5rem\+env\(safe-area-inset-bottom\)\)\]/);
+  assert.match(notice, /z-40/);
+  assert.match(notice, /background: 'var\(--accent-strong\)'/);
   assert.match(notice, />\s*Entendido\s*</);
   assert.match(providers, /import PWAIdentityUpdateNotice from '@\/components\/PWAIdentityUpdateNotice'/);
   assert.match(providers, /<LoadingProvider>\{children\}<PWAIdentityUpdateNotice \/><\/LoadingProvider>/);

@@ -25,7 +25,7 @@ export default function PWAIdentityUpdateNotice() {
   return (
     <section
       aria-live="polite"
-      className="fixed bottom-4 left-4 right-4 z-50 mx-auto max-w-md rounded-2xl border p-4 shadow-xl"
+      className="fixed bottom-[calc(5rem+env(safe-area-inset-bottom))] left-4 right-4 z-40 mx-auto max-w-md rounded-2xl border p-4 shadow-xl"
       role="status"
       style={{ background: 'var(--surface)', borderColor: 'var(--border)' }}
     >
@@ -38,7 +38,7 @@ export default function PWAIdentityUpdateNotice() {
           localStorage.setItem(STORAGE_KEY, PWA_ASSET_VERSION);
           setVisible(false);
         }}
-        style={{ background: 'var(--accent)' }}
+        style={{ background: 'var(--accent-strong)' }}
         type="button"
       >
         Entendido
