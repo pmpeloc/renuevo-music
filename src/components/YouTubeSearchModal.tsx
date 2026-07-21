@@ -73,7 +73,7 @@ export default function YouTubeSearchModal({
         <div className='px-5 pt-4 pb-3 border-b border-gray-100'>
           <div className='w-10 h-1 bg-gray-200 rounded-full mx-auto mb-4' />
           <div className='flex items-center justify-between mb-3'>
-            <h2 className='text-base font-semibold'>Buscar en YouTube</h2>
+            <h2 className='text-lg font-semibold'>Buscar en YouTube</h2>
             <button
               onClick={onClose}
               className='w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center'>

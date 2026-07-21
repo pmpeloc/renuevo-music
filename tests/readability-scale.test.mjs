@@ -20,9 +20,12 @@ test('removes oversized empty states in primary views', () => {
 });
 
 test('keeps form fields on the compact reading scale', () => {
-  const formFieldWithBaseText = /<(?:input|select)(?:(?!\/>|<\/select>)[\s\S])*\btext-base\b/s;
-
   for (const file of readdirSync('src', { recursive: true }).filter((file) => file.endsWith('.tsx'))) {
-    assert.doesNotMatch(readFileSync(join('src', file), 'utf8'), formFieldWithBaseText, file);
+    const formFields = readFileSync(join('src', file), 'utf8').match(/<(?:input|select)\b[\s\S]*?(?:\/>|(?<!\=)>)/g) ?? [];
+    for (const field of formFields) {
+      if (/\bhidden\b/.test(field)) continue;
+      assert.match(field, /\btext-sm\b/, file);
+      assert.doesNotMatch(field, /\btext-(?:xs|base|lg)\b/, file);
+    }
   }
 });

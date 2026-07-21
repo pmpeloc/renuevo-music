@@ -378,7 +378,7 @@ export default function AddSongModal({
                           value={editArtist}
                           onChange={(e) => setEditArtist(e.target.value)}
                           placeholder='Artista (opcional)'
-                          className='w-full px-2 py-1 rounded-lg border border-gray-200 text-xs focus:outline-none input-ring'
+                          className='w-full px-2 py-1 rounded-lg border border-gray-200 text-sm focus:outline-none input-ring'
                           style={{ color: 'var(--purple-600)' }}
                         />
                       </div>

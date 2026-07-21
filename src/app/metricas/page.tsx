@@ -68,7 +68,7 @@ function SectionHeader({
         style={{ background: 'var(--purple-50)' }}>
         <Icon size={15} style={{ color: 'var(--purple-600)' }} />
       </div>
-      <h2 className='font-semibold text-gray-800 text-sm'>{title}</h2>
+      <h2 className='font-semibold text-gray-800 text-lg'>{title}</h2>
     </div>
   );
 }

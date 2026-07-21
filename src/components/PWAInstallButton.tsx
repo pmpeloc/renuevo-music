@@ -46,7 +46,7 @@ export default function PWAInstallButton() {
         >
           <div className="bg-white rounded-t-3xl p-6 slide-up">
             <div className="flex items-center justify-between mb-5">
-              <h3 className="font-semibold text-base">Instalar Renuevo</h3>
+            <h3 className="font-semibold text-lg">Instalar Renuevo</h3>
               <button
                 onClick={() => setShowIOSGuide(false)}
                 className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center"

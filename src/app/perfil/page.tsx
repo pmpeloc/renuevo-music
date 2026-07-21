@@ -388,7 +388,7 @@ export default function PerfilPage() {
                     if (e.key === 'Enter') saveName();
                     if (e.key === 'Escape') setEditingName(false);
                   }}
-                  className='flex-1 text-center text-white font-semibold text-lg bg-transparent border-b outline-none pb-0.5'
+                  className='flex-1 text-center text-white font-semibold text-sm bg-transparent border-b outline-none pb-0.5'
                   style={{ borderColor: 'var(--purple-400)' }}
                   autoFocus
                 />
