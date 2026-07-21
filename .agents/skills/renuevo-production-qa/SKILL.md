@@ -22,7 +22,7 @@ Validar Renuevo Music en producción mediante la UI visible y dejar cero datos p
 1. Obtener la fecha y hora UTC al iniciar.
 2. Formar `QA_AUTOMATION_<timestamp>`, donde `timestamp` usa `YYYYMMDDTHHMMSSZ`.
 3. Reutilizar el mismo identificador sin cambios en todos los datos y en el reporte.
-4. Nombrar el perfil `<identificador> Perfil` y la canción `<identificador> Canción`. Las ediciones deben conservar el identificador exacto.
+4. Nombrar los perfiles `<identificador> Perfil director` y `<identificador> Perfil alterno`, y la canción `<identificador> Canción`. Ambos perfiles deben llevar el identificador exacto y tener nombres distintos. Las ediciones deben conservar el identificador exacto.
 
 ## Preflight
 
@@ -37,7 +37,7 @@ Validar Renuevo Music en producción mediante la UI visible y dejar cero datos p
 Registrar cada caso como `PASS`, `FAIL` o `SKIP`, con pasos breves, esperado y observado.
 
 1. **Crear y seleccionar perfil**
-   - Crear `<identificador> Perfil` desde el selector.
+   - Crear `<identificador> Perfil director` desde el selector.
    - Confirmar que aparece y seleccionarlo.
    - Esperar Inicio y el nombre del perfil activo.
 
@@ -59,8 +59,11 @@ Registrar cada caso como `PASS`, `FAIL` o `SKIP`, con pasos breves, esperado y o
 
 5. **Crear, editar y usar canción**
    - En el servicio, agregar una canción nueva titulada `<identificador> Canción`.
-   - Completar solo campos visibles opcionales con valores que conserven el identificador cuando sean texto libre.
-   - Asignar tono/comienzo o notas si la UI lo permite y confirmar que aparece en la lista del servicio.
+   - Activar «Crear canción nueva» y confirmar que el buscador del catálogo no se muestra.
+   - Pegar un enlace de YouTube visible de prueba, guardar una sola vez, volver a editar y confirmar que persiste.
+   - Guardar tono y comentario personal con `<identificador> Perfil director`; reabrir y confirmar la precarga editable.
+   - Crear `<identificador> Perfil alterno` como segundo perfil QA con el mismo identificador, añadirlo al inventario y asignarlo como director sin reemplazar integrantes existentes.
+   - Guardar tono y comentario distintos para la misma canción con el segundo perfil QA. Alternar entre ambos perfiles directores y confirmar que cada uno recupera únicamente sus valores.
    - Abrir Canciones, buscar el identificador exacto y editar el título a `<identificador> Canción editada`.
    - Volver al servicio y confirmar que la canción QA sigue asociada. No editar canciones preexistentes.
 
@@ -94,10 +97,10 @@ Intentar la limpieza aun después de `FAIL` o de una interrupción:
 1. Ir primero a Canciones, limpiar filtros y buscar el identificador exacto.
 2. Eliminar cada canción visible solo si su título contiene exactamente el identificador. Confirmar la advertencia.
 3. Volver a Canciones, repetir la búsqueda y verificar ausencia.
-4. Ir luego a Perfil o al selector y localizar el perfil con el identificador exacto.
-5. Eliminarlo solo si el texto visible demuestra pertenencia.
-6. Volver al selector/listado y verificar ausencia.
-7. Registrar cada intento, resultado y residuo. Si no se puede eliminar o verificar cualquier dato propio, usar `FAIL-CLEANUP`.
+4. Ir luego a Perfil o al selector y localizar ambos perfiles con el identificador exacto: `<identificador> Perfil director` y `<identificador> Perfil alterno`.
+5. Eliminar cada perfil del inventario solo si su texto visible demuestra pertenencia; no dar por limpio uno por haber eliminado el otro.
+6. Volver al selector/listado, buscar el identificador exacto y verificar que ambos perfiles no aparecen.
+7. Registrar cada intento, resultado y residuo de ambos perfiles. Si no se puede eliminar o verificar cualquier dato propio, usar `FAIL-CLEANUP`.
 
 ## Resultado global
 
