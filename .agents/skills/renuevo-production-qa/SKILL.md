@@ -38,6 +38,7 @@ Registrar cada caso como `PASS`, `FAIL` o `SKIP`, con pasos breves, esperado y o
 
 1. **Crear y seleccionar perfil**
    - Crear `<identificador> Perfil director` desde el selector.
+   - Tras crearlo, registrarlo inmediatamente en el inventario con tipo `perfil`, texto visible exacto `<identificador> Perfil director`, URL y estado de limpieza.
    - Confirmar que aparece y seleccionarlo.
    - Esperar Inicio y el nombre del perfil activo.
 
@@ -49,7 +50,7 @@ Registrar cada caso como `PASS`, `FAIL` o `SKIP`, con pasos breves, esperado y o
 3. **Editar perfil**
    - En Perfil, cambiar el nombre a `<identificador> Perfil editado`.
    - Cambiar color o instrumento mediante controles visibles y guardar.
-   - Recargar o volver a Perfil y confirmar que el identificador y la edición persisten.
+   - Recargar o volver a Perfil y confirmar que el identificador y la edición persisten; actualizar inmediatamente su registro del inventario con el texto visible exacto `<identificador> Perfil editado`.
 
 4. **Asignar rol en un servicio**
    - Desde Inicio, abrir un servicio visible.
@@ -61,8 +62,9 @@ Registrar cada caso como `PASS`, `FAIL` o `SKIP`, con pasos breves, esperado y o
    - En el servicio, agregar una canción nueva titulada `<identificador> Canción`.
    - Activar «Crear canción nueva» y confirmar que el buscador del catálogo no se muestra.
    - Pegar un enlace de YouTube visible de prueba, guardar una sola vez, volver a editar y confirmar que persiste.
-   - Guardar tono y comentario personal con `<identificador> Perfil director`; reabrir y confirmar la precarga editable.
-   - Crear `<identificador> Perfil alterno` como segundo perfil QA con el mismo identificador, añadirlo al inventario y asignarlo como director sin reemplazar integrantes existentes.
+   - Guardar tono y comentario personal con `<identificador> Perfil editado`; reabrir y confirmar la precarga editable.
+   - Crear `<identificador> Perfil alterno` como segundo perfil QA con el mismo identificador.
+   - Tras crearlo, registrarlo inmediatamente en el inventario con tipo `perfil`, texto visible exacto `<identificador> Perfil alterno`, URL y estado de limpieza; asignarlo como director sin reemplazar integrantes existentes.
    - Guardar tono y comentario distintos para la misma canción con el segundo perfil QA. Alternar entre ambos perfiles directores y confirmar que cada uno recupera únicamente sus valores.
    - Abrir Canciones, buscar el identificador exacto y editar el título a `<identificador> Canción editada`.
    - Volver al servicio y confirmar que la canción QA sigue asociada. No editar canciones preexistentes.
@@ -97,9 +99,9 @@ Intentar la limpieza aun después de `FAIL` o de una interrupción:
 1. Ir primero a Canciones, limpiar filtros y buscar el identificador exacto.
 2. Eliminar cada canción visible solo si su título contiene exactamente el identificador. Confirmar la advertencia.
 3. Volver a Canciones, repetir la búsqueda y verificar ausencia.
-4. Ir luego a Perfil o al selector y localizar ambos perfiles con el identificador exacto: `<identificador> Perfil director` y `<identificador> Perfil alterno`.
-5. Eliminar cada perfil del inventario solo si su texto visible demuestra pertenencia; no dar por limpio uno por haber eliminado el otro.
-6. Volver al selector/listado, buscar el identificador exacto y verificar que ambos perfiles no aparecen.
+4. Ir luego a Perfil o al selector y localizar ambos perfiles por sus textos visibles vigentes del inventario: `<identificador> Perfil editado` y `<identificador> Perfil alterno`.
+5. Eliminar cada perfil del inventario solo si coincide con su texto visible vigente y demuestra pertenencia; no dar por limpio uno por haber eliminado el otro.
+6. Volver al selector/listado, buscar el identificador exacto y verificar que `<identificador> Perfil editado` y `<identificador> Perfil alterno` no aparecen.
 7. Registrar cada intento, resultado y residuo de ambos perfiles. Si no se puede eliminar o verificar cualquier dato propio, usar `FAIL-CLEANUP`.
 
 ## Resultado global

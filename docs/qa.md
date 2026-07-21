@@ -4,7 +4,7 @@ La secuencia autoritativa está en [`$renuevo-production-qa`](../.agents/skills/
 
 Cada ejecución usa un único identificador UTC `QA_AUTOMATION_<timestamp>`, con timestamp `YYYYMMDDTHHMMSSZ`, en todos los perfiles y canciones creados.
 
-Para las preferencias por perfil, crear `<identificador> Perfil director` y `<identificador> Perfil alterno`: son dos perfiles QA distintos con el mismo identificador. En la canción nueva, confirmar que «Crear canción nueva» oculta el buscador del catálogo, pegar y comprobar la persistencia de un enlace de YouTube, y guardar tono y comentario personal distintos para cada perfil. Al alternarlos, cada uno debe recuperar solamente sus propios valores.
+Para las preferencias por perfil, crear `<identificador> Perfil director`, registrarlo en el inventario y renombrarlo a `<identificador> Perfil editado`, actualizando ese registro. Crear y registrar inmediatamente `<identificador> Perfil alterno`: son dos perfiles QA distintos con el mismo identificador. En la canción nueva, confirmar que «Crear canción nueva» oculta el buscador del catálogo, pegar y comprobar la persistencia de un enlace de YouTube, y guardar tono y comentario personal distintos para cada perfil. Al alternarlos, cada uno debe recuperar solamente sus propios valores.
 
 ## Reglas de seguridad
 
@@ -13,7 +13,7 @@ Para las preferencias por perfil, crear `<identificador> Perfil director` y `<id
 - No ejecutar en paralelo.
 - Eliminar únicamente elementos cuyo texto visible contenga exactamente el identificador de la ejecución.
 - Intentar y verificar la limpieza incluso cuando falle un caso funcional.
-- Inventariar y eliminar ambos perfiles QA por separado; luego buscar el identificador exacto en el selector/listado y verificar que ninguno aparece.
+- Inventariar y eliminar ambos perfiles QA por separado usando sus textos visibles vigentes (`<identificador> Perfil editado` y `<identificador> Perfil alterno`); luego verificar que ninguno aparece.
 
 ## Resultados
 
