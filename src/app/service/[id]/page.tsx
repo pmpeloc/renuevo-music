@@ -11,6 +11,7 @@ import {
   MemberRole,
   ServiceType,
   SERVICE_LABELS,
+  SERVICE_DAY,
   ROLE_LABELS,
 } from '@/types';
 import { formatDate } from '@/lib/utils';
@@ -29,6 +30,14 @@ import {
   X,
 } from 'lucide-react';
 import { extractYoutubeId } from '@/lib/utils';
+
+// "jueves", "sábado de jóvenes", "domingo de niños"… para el copy de las push
+function serviceRefOf(svc: Service | null | undefined): string {
+  if (!svc) return 'servicio';
+  return svc.type === 'jueves'
+    ? 'jueves'
+    : `${SERVICE_DAY[svc.type].toLowerCase()} de ${SERVICE_LABELS[svc.type].toLowerCase()}`;
+}
 
 type DirectorSection = {
   role: 'director_alabanzas' | 'director_adoraciones';
@@ -137,7 +146,16 @@ export default function ServiceDetailPage() {
       .select();
     setShowAssignModal(false);
     loadData();
-    await notifyTeam(`${profile?.name} asignó un miembro al servicio`);
+    // Auto-asignarse no notifica a nadie
+    if (profileId !== profile?.id) {
+      const assignedName =
+        allProfiles.find((p) => p.id === profileId)?.name ?? 'un miembro';
+      await notifyTeam(
+        role === 'coro'
+          ? `${profile?.name} asignó a ${assignedName} al coro del ${serviceRefOf(service)}`
+          : `${profile?.name} asignó a ${assignedName} para dirigir el ${serviceRefOf(service)}`,
+      );
+    }
   }
 
   async function removeMember(memberId: string) {
@@ -146,9 +164,13 @@ export default function ServiceDetailPage() {
   }
 
   async function removeSong(songId: string) {
+    const songTitle =
+      songs.find((s) => s.id === songId)?.song?.title ?? 'una canción';
     await supabase.from('service_songs').delete().eq('id', songId);
     loadData();
-    await notifyTeam(`${profile?.name} actualizó la lista de canciones`);
+    await notifyTeam(
+      `${profile?.name} quitó "${songTitle}" del listado del ${serviceRefOf(service)}`,
+    );
   }
 
   function getProfileIcon(): string {
@@ -249,8 +271,9 @@ export default function ServiceDetailPage() {
     });
     await supabase.from('service_songs').insert(inserts);
     setCopying(false);
+    const target = siblingServices.find((s) => s.id === targetServiceId);
     await notifyTeam(
-      `${profile?.name} copió la lista de canciones a otro servicio`,
+      `${profile?.name} copió el listado del ${serviceRefOf(service)} al ${serviceRefOf(target)}`,
     );
   }
 
@@ -867,7 +890,12 @@ export default function ServiceDetailPage() {
                 ? prev.map((s) => (s.id === ss.id ? ss : s))
                 : [...prev, ss],
             );
-            notifyTeam(`${profile.name} actualizó la lista de canciones`);
+            const songTitle = ss.song?.title ?? 'una canción';
+            notifyTeam(
+              editingSong
+                ? `${profile.name} actualizó "${songTitle}" en el listado del ${serviceRefOf(service)}`
+                : `${profile.name} agregó "${songTitle}" al listado del ${serviceRefOf(service)}`,
+            );
           }}
         />
       )}
