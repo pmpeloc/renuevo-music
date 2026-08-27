@@ -69,6 +69,9 @@ input::placeholder, textarea::placeholder {
 /* Adaptación oscura de las utilidades usadas por las pantallas existentes. */
 .bg-white { background-color: var(--surface) !important; }
 .bg-gray-50, .bg-gray-100 { background-color: var(--surface-2) !important; }
+/* Las variantes hover son clases aparte en Tailwind: sin esto vuelven al gris claro original. */
+.hover\:bg-gray-50:hover { background-color: var(--surface-2) !important; }
+.hover\:bg-red-50:hover { background-color: rgba(243, 111, 119, 0.14) !important; }
 .text-gray-900, .text-gray-800, .text-gray-700 { color: var(--text-primary) !important; }
 .text-gray-600, .text-gray-500 { color: var(--text-secondary) !important; }
 .text-gray-400, .text-gray-300 { color: var(--text-muted) !important; }

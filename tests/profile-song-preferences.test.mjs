@@ -51,7 +51,7 @@ test('blocks preference edits and saving until preference loading settles', () =
   assert.match(modal, /function selectFromCatalog\(song: Song\) \{[\s\S]*?setPreferencesLoading\(true\);[\s\S]*?setSelectedSong\(song\);/);
   assert.match(modal, /setPreferencesLoading\(true\);[\s\S]*finally \{\s*if \(!cancelled\) setPreferencesLoading\(false\);/);
   assert.equal((modal.match(/disabled=\{preferencesBlocked\}/g) ?? []).length, 3);
-  assert.match(modal, /disabled=\{!canSave \|\| saving \|\| preferencesBlocked\}/);
+  assert.match(modal, /disabled=\{!canSave \|\| saving \|\| preferencesBlocked \|\| editBlocked\}/);
   assert.match(modal, /preferencesLoading\s*\? 'Cargando preferencias\.\.\.'/);
   assert.match(keySelector, /disabled\?: boolean/);
   assert.match(keySelector, /<select[\s\S]*disabled=\{disabled\}/);

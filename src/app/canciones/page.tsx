@@ -2,10 +2,12 @@
 'use client';
 import { useEffect, useState, useMemo } from 'react';
 import { supabase } from '@/lib/supabase';
-import { Song, ServiceSong, Service } from '@/types';
+import { Song, SongCategory, ServiceSong, Service } from '@/types';
 import AppShell from '@/components/AppShell';
+import CategoryPicker from '@/components/CategoryPicker';
 import ConfirmDialog from '@/components/ConfirmDialog';
 import { useLoading } from '@/context/LoadingContext';
+import { matchesSearch } from '@/lib/utils';
 import {
   Search,
   Video,
@@ -46,6 +48,12 @@ const SORT_LABELS: Record<SortType, string> = {
   menos_usadas: 'Menos usadas',
 };
 
+const CATEGORY_SECTIONS: { key: SongCategory | 'none'; label: string }[] = [
+  { key: 'alabanza', label: 'Alabanza' },
+  { key: 'adoracion', label: 'Adoración' },
+  { key: 'none', label: 'Sin categoría' },
+];
+
 // ─── Edit Modal ───────────────────────────────────────────────────────────────
 
 function EditSongModal({
@@ -60,12 +68,19 @@ function EditSongModal({
   const [title, setTitle] = useState(song.title);
   const [artist, setArtist] = useState(song.artist ?? '');
   const [ytUrl, setYtUrl] = useState(song.youtube_url ?? '');
+  const [category, setCategory] = useState<SongCategory | null>(
+    song.category ?? null,
+  );
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
 
   async function handleSave() {
     if (!title.trim()) {
       setError('El título es obligatorio');
+      return;
+    }
+    if (!category) {
+      setError('No se guardarán los cambios hasta que definas la categoría');
       return;
     }
     setSaving(true);
@@ -75,6 +90,7 @@ function EditSongModal({
         title: title.trim(),
         artist: artist.trim() || null,
         youtube_url: ytUrl.trim() || null,
+        category,
       })
       .eq('id', song.id)
       .select()
@@ -147,6 +163,24 @@ function EditSongModal({
               type='url'
               inputMode='url'
             />
+          </div>
+          <div>
+            <label className='text-xs font-semibold text-gray-500 uppercase tracking-wider block mb-1'>
+              Categoría *
+            </label>
+            <CategoryPicker
+              value={category}
+              onChange={(c) => {
+                setCategory(c);
+                setError('');
+              }}
+            />
+            {!category && (
+              <p className='text-xs mt-1.5' style={{ color: 'var(--warning)' }}>
+                Esta canción no tiene categoría. No se guardarán los cambios
+                hasta que definas la categoría.
+              </p>
+            )}
           </div>
           {error && <p className='text-xs text-red-500'>{error}</p>}
         </div>
@@ -249,11 +283,8 @@ export default function CancionesPage() {
 
     // Text search
     if (search.trim()) {
-      const q = search.toLowerCase();
-      result = result.filter(
-        (s) =>
-          s.title.toLowerCase().includes(q) ||
-          (s.artist ?? '').toLowerCase().includes(q),
+      result = result.filter((s) =>
+        matchesSearch(`${s.title} ${s.artist ?? ''}`, search),
       );
     }
 
@@ -332,10 +363,8 @@ export default function CancionesPage() {
 
   const filterCounts = useMemo<Record<FilterType, number>>(() => {
     const base = search.trim()
-      ? songsWithStats.filter(
-          (s) =>
-            s.title.toLowerCase().includes(search.toLowerCase()) ||
-            (s.artist ?? '').toLowerCase().includes(search.toLowerCase()),
+      ? songsWithStats.filter((s) =>
+          matchesSearch(`${s.title} ${s.artist ?? ''}`, search),
         )
       : songsWithStats;
     return {
@@ -488,8 +517,21 @@ export default function CancionesPage() {
               )}
             </div>
           ) : (
-            <div className='space-y-2 fade-in'>
-              {sorted.map((song, idx) => (
+            <div className='space-y-6 fade-in'>
+              {CATEGORY_SECTIONS.map((section) => {
+              const sectionSongs = sorted.filter(
+                (s) => (s.category ?? 'none') === section.key,
+              );
+              if (sectionSongs.length === 0) return null;
+              return (
+              <div key={section.key}>
+              <h2
+                className='text-xs font-bold uppercase tracking-wider mb-2 px-1'
+                style={{ color: 'var(--text-secondary)' }}>
+                {section.label} · {sectionSongs.length}
+              </h2>
+              <div className='space-y-2'>
+              {sectionSongs.map((song, idx) => (
                 <button
                   key={song.id}
                   onClick={() => setEditingSong(song)}
@@ -599,6 +641,10 @@ export default function CancionesPage() {
                   </div>
                 </button>
               ))}
+              </div>
+              </div>
+              );
+              })}
             </div>
           )}
           <div className='h-4' />

@@ -12,6 +12,13 @@ test('Nocturno Azul defines the shared dark theme', () => {
   assert.match(css, /color-scheme:\s*dark/i);
 });
 
+test('hover variants keep dark-theme contrast (no light background on hover)', () => {
+  const css = readFileSync('src/app/globals.css', 'utf8');
+
+  assert.match(css, /\.hover\\:bg-gray-50:hover\s*\{\s*background-color:\s*var\(--surface-2\)\s*!important/);
+  assert.match(css, /\.hover\\:bg-red-50:hover/);
+});
+
 test('navigation and service cards stay visually consistent', () => {
   const shell = readFileSync('src/components/AppShell.tsx', 'utf8');
   const home = readFileSync('src/app/home/page.tsx', 'utf8');

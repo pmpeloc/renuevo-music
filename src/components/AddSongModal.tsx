@@ -1,9 +1,10 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { supabase } from '@/lib/supabase';
-import { Song, SongKeyHistory, MusicalKey, ServiceSong } from '@/types';
-import { extractYoutubeId, getYoutubeThumbnail } from '@/lib/utils';
+import { Song, SongCategory, SongKeyHistory, MusicalKey, ServiceSong } from '@/types';
+import { extractYoutubeId, getYoutubeThumbnail, matchesSearch } from '@/lib/utils';
 import KeySelector from './KeySelector';
+import CategoryPicker from './CategoryPicker';
 import { X, Search, Video, Info } from 'lucide-react';
 import YouTubeSearchModal from './YouTubeSearchModal';
 import Image from 'next/image';
@@ -23,16 +24,16 @@ export default function AddSongModal({
   onSaved,
   editingSong,
 }: AddSongModalProps) {
-  // Búsqueda en catálogo
+  // Búsqueda en catálogo (local, sin acentos)
   const [searchQuery, setSearchQuery] = useState('');
-  const [catalogResults, setCatalogResults] = useState<Song[]>([]);
+  const [catalog, setCatalog] = useState<Song[] | null>(null);
   const [selectedSong, setSelectedSong] = useState<Song | null>(null);
-  const [searching, setSearching] = useState(false);
 
   // Campos de nueva canción
   const [newTitle, setNewTitle] = useState('');
   const [newArtist, setNewArtist] = useState('');
   const [newYoutube, setNewYoutube] = useState('');
+  const [newCategory, setNewCategory] = useState<SongCategory | null>(null);
   const [showNewForm, setShowNewForm] = useState(false);
   const [createdSongInModal, setCreatedSongInModal] = useState<Song | null>(null);
 
@@ -42,6 +43,7 @@ export default function AddSongModal({
   // Campos editables de título/artista en modo edición
   const [editTitle, setEditTitle] = useState('');
   const [editArtist, setEditArtist] = useState('');
+  const [editCategory, setEditCategory] = useState<SongCategory | null>(null);
 
   // Tono
   const [selectedKey, setSelectedKey] = useState<MusicalKey | null>(null);
@@ -67,29 +69,31 @@ export default function AddSongModal({
         setYoutubeUrl(editingSong.song.youtube_url ?? '');
         setEditTitle(editingSong.song.title ?? '');
         setEditArtist(editingSong.song.artist ?? '');
+        setEditCategory(editingSong.song.category ?? null);
       }
     }
   }, [editingSong]);
 
-  // Buscar en catálogo
+  // Cargar catálogo una vez; el filtrado es local para tolerar acentos
+  // ponytail: trae todo el catálogo (cientos de canciones); paginar si crece a miles
   useEffect(() => {
-    if (!searchQuery.trim() || searchQuery.length < 2) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setCatalogResults([]);
-      return;
-    }
-    const timer = setTimeout(async () => {
-      setSearching(true);
-      const { data } = await supabase
-        .from('songs')
-        .select('*')
-        .ilike('title', `%${searchQuery}%`)
-        .limit(8);
-      setCatalogResults(data ?? []);
-      setSearching(false);
-    }, 300);
-    return () => clearTimeout(timer);
-  }, [searchQuery]);
+    if (editingSong) return;
+    supabase
+      .from('songs')
+      .select('*')
+      .order('title')
+      .then(({ data }) => setCatalog(data ?? []));
+  }, [editingSong]);
+
+  const catalogResults = useMemo(() => {
+    if (!catalog || !searchQuery.trim() || searchQuery.length < 2) return [];
+    return catalog
+      .filter((s) => matchesSearch(s.title, searchQuery))
+      .slice(0, 8);
+  }, [catalog, searchQuery]);
+
+  const searching =
+    !catalog && !!searchQuery.trim() && searchQuery.length >= 2;
 
   // Cargar historial de tono cuando se selecciona una canción
   useEffect(() => {
@@ -164,18 +168,18 @@ export default function AddSongModal({
     setSelectedSong(song);
     setYoutubeUrl(song.youtube_url ?? '');
     setSearchQuery('');
-    setCatalogResults([]);
     setShowNewForm(false);
   }
 
   async function saveNewSong(): Promise<Song | null> {
-    if (!newTitle.trim()) return null;
+    if (!newTitle.trim() || !newCategory) return null;
     const { data, error } = await supabase
       .from('songs')
       .insert({
         title: newTitle.trim(),
         artist: newArtist.trim() || null,
         youtube_url: newYoutube.trim() || null,
+        category: newCategory,
       })
       .select()
       .single();
@@ -210,12 +214,16 @@ export default function AddSongModal({
     const cleanArtist = editingSong ? (editArtist.trim() || null) : (song.artist ?? null);
     const needsCatalogUpdate =
       cleanUrl !== (song.youtube_url ?? null) ||
-      (editingSong && (cleanTitle !== song.title || cleanArtist !== (song.artist ?? null)));
+      (editingSong &&
+        (cleanTitle !== song.title ||
+          cleanArtist !== (song.artist ?? null) ||
+          editCategory !== (song.category ?? null)));
     if (needsCatalogUpdate) {
       const updatePayload: Record<string, string | null> = { youtube_url: cleanUrl };
       if (editingSong) {
         updatePayload.title = cleanTitle || song.title;
         updatePayload.artist = cleanArtist;
+        updatePayload.category = editCategory;
       }
       const { error } = await supabase
         .from('songs')
@@ -288,8 +296,12 @@ export default function AddSongModal({
     : selectedSong?.youtube_url
       ? extractYoutubeId(selectedSong.youtube_url)
       : null;
-  const canSave = !!(selectedSong || (showNewForm && newTitle.trim()));
+  const canSave = !!(
+    selectedSong ||
+    (showNewForm && newTitle.trim() && newCategory)
+  );
   const preferencesBlocked = preferencesLoading || !!preferencesError;
+  const editBlocked = !!editingSong && !editCategory;
 
   // Título para la búsqueda de YouTube
   const youtubeSearchQuery = selectedSong?.title ?? newTitle;
@@ -387,7 +399,6 @@ export default function AddSongModal({
                       setNotes('');
                       setPreferencesError(null);
                       setSearchQuery('');
-                      setCatalogResults([]);
                     }}
                     className='mt-2 text-sm font-medium w-full text-center py-2'
                     style={{ color: 'var(--purple-600)' }}>
@@ -462,6 +473,27 @@ export default function AddSongModal({
                   )}
                 </div>
 
+                {/* Categoría (obligatoria en edición) */}
+                {editingSong && (
+                  <div>
+                    <label className='text-xs font-medium text-gray-500 uppercase tracking-wide mb-1.5 block'>
+                      Categoría *
+                    </label>
+                    <CategoryPicker
+                      value={editCategory}
+                      onChange={setEditCategory}
+                    />
+                    {editBlocked && (
+                      <p
+                        className='text-xs mt-1.5'
+                        style={{ color: 'var(--warning)' }}>
+                        Esta canción no tiene categoría. No se guardarán los
+                        cambios hasta que definas la categoría.
+                      </p>
+                    )}
+                  </div>
+                )}
+
                 {/* Campo YouTube para canción del catálogo */}
                 <div>
                   <label className='text-xs font-medium text-gray-500 uppercase tracking-wide mb-1.5 block'>
@@ -529,6 +561,15 @@ export default function AddSongModal({
                     onChange={(e) => setNewArtist(e.target.value)}
                     placeholder='Ej: Elevation Worship'
                     className='w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none input-ring'
+                  />
+                </div>
+                <div>
+                  <label className='text-xs font-medium text-gray-500 uppercase tracking-wide mb-1.5 block'>
+                    Categoría *
+                  </label>
+                  <CategoryPicker
+                    value={newCategory}
+                    onChange={setNewCategory}
                   />
                 </div>
                 <div>
@@ -638,7 +679,7 @@ export default function AddSongModal({
             {/* ── GUARDAR ── */}
             <button
               onClick={handleSave}
-              disabled={!canSave || saving || preferencesBlocked}
+              disabled={!canSave || saving || preferencesBlocked || editBlocked}
               className='w-full py-4 rounded-2xl text-white font-semibold text-base transition-opacity disabled:opacity-40 mb-4'
               style={{ background: 'var(--purple-600)' }}>
               {preferencesLoading

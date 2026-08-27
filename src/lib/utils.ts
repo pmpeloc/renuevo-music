@@ -1,4 +1,4 @@
-import { ServiceType } from '@/types';
+import type { ServiceType } from '@/types';
 
 // ============================================================
 // CONSTANTES DE FECHA EN ESPAÑOL
@@ -103,6 +103,28 @@ export function extractYoutubeId(url: string): string | null {
 
 export function getYoutubeThumbnail(videoId: string): string {
   return `https://img.youtube.com/vi/${videoId}/mqdefault.jpg`;
+}
+
+// ============================================================
+// SEARCH
+// ============================================================
+
+// Minúsculas y sin acentos: "Tú" → "tu"
+function normalizeSearchText(text: string): string {
+  return text
+    .normalize('NFD')
+    .replace(/[̀-ͯ]/g, '')
+    .toLowerCase();
+}
+
+// Matchea si algún token de la consulta aparece en el texto.
+// ponytail: any-token match sin ranking; ordenar por cantidad de tokens
+// coincidentes si los resultados se vuelven ruidosos.
+export function matchesSearch(text: string, query: string): boolean {
+  const haystack = normalizeSearchText(text);
+  const tokens = normalizeSearchText(query).split(/\s+/).filter(Boolean);
+  if (tokens.length === 0) return true;
+  return tokens.some((t) => haystack.includes(t));
 }
 
 // ============================================================

@@ -69,11 +69,14 @@ export interface ServiceMember {
   profile?: Profile;
 }
 
+export type SongCategory = 'adoracion' | 'alabanza';
+
 export interface Song {
   id: string;
   title: string;
   artist: string | null;
   youtube_url: string | null;
+  category: SongCategory | null;
   created_at: string;
 }
 
