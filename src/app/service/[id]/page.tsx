@@ -31,6 +31,8 @@ import {
 } from 'lucide-react';
 import { extractYoutubeId } from '@/lib/utils';
 
+const firstName = (name?: string | null) => name?.split(' ')[0] ?? '';
+
 // "jueves", "sábado de jóvenes", "domingo de niños"… para el copy de las push
 function serviceRefOf(svc: Service | null | undefined): string {
   if (!svc) return 'servicio';
@@ -149,18 +151,27 @@ export default function ServiceDetailPage() {
     // Auto-asignarse no notifica a nadie
     if (profileId !== profile?.id) {
       const assignedName =
-        allProfiles.find((p) => p.id === profileId)?.name ?? 'un miembro';
+        firstName(allProfiles.find((p) => p.id === profileId)?.name) ||
+        'un miembro';
       await notifyTeam(
         role === 'coro'
-          ? `${profile?.name} asignó a ${assignedName} al coro del ${serviceRefOf(service)}`
-          : `${profile?.name} asignó a ${assignedName} para dirigir el ${serviceRefOf(service)}`,
+          ? `${firstName(profile?.name)} asignó a ${assignedName} al coro del ${serviceRefOf(service)}`
+          : `${firstName(profile?.name)} asignó a ${assignedName} para dirigir el ${serviceRefOf(service)}`,
       );
     }
   }
 
   async function removeMember(memberId: string) {
+    const removed = members.find((m) => m.id === memberId);
     await supabase.from('service_members').delete().eq('id', memberId);
     loadData();
+    // Quitarse a sí mismo no notifica a nadie
+    if (removed && removed.profile_id !== profile?.id) {
+      const removedName = firstName(removed.profile?.name) || 'un miembro';
+      await notifyTeam(
+        `${firstName(profile?.name)} quitó a ${removedName} del ${serviceRefOf(service)}`,
+      );
+    }
   }
 
   async function removeSong(songId: string) {
@@ -169,7 +180,7 @@ export default function ServiceDetailPage() {
     await supabase.from('service_songs').delete().eq('id', songId);
     loadData();
     await notifyTeam(
-      `${profile?.name} quitó "${songTitle}" del listado del ${serviceRefOf(service)}`,
+      `${firstName(profile?.name)} quitó "${songTitle}" del listado del ${serviceRefOf(service)}`,
     );
   }
 
@@ -187,7 +198,9 @@ export default function ServiceDetailPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          title: 'Renuevo Music',
+          title: service
+            ? `${SERVICE_DAY[service.type]} — ${SERVICE_LABELS[service.type]}`
+            : 'Renuevo Music',
           body: message,
           url: `/service/${id}`,
           icon: getProfileIcon(),
@@ -273,7 +286,7 @@ export default function ServiceDetailPage() {
     setCopying(false);
     const target = siblingServices.find((s) => s.id === targetServiceId);
     await notifyTeam(
-      `${profile?.name} copió el listado del ${serviceRefOf(service)} al ${serviceRefOf(target)}`,
+      `${firstName(profile?.name)} copió el listado del ${serviceRefOf(service)} al ${serviceRefOf(target)}`,
     );
   }
 
@@ -893,8 +906,8 @@ export default function ServiceDetailPage() {
             const songTitle = ss.song?.title ?? 'una canción';
             notifyTeam(
               editingSong
-                ? `${profile.name} actualizó "${songTitle}" en el listado del ${serviceRefOf(service)}`
-                : `${profile.name} agregó "${songTitle}" al listado del ${serviceRefOf(service)}`,
+                ? `${firstName(profile.name)} actualizó "${songTitle}" en el listado del ${serviceRefOf(service)}`
+                : `${firstName(profile.name)} agregó "${songTitle}" al listado del ${serviceRefOf(service)}`,
             );
           }}
         />

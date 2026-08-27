@@ -23,6 +23,20 @@ test('copiar la lista nombra el servicio destino', () => {
   assert.match(page, /copió el listado del \$\{serviceRefOf\(service\)\} al \$\{serviceRefOf\(target\)\}/);
 });
 
+test('quitar a un miembro notifica, salvo que se quite a sí mismo', () => {
+  assert.match(page, /removed\.profile_id !== profile\?\.id/);
+  assert.match(page, /quitó a \$\{removedName\} del \$\{serviceRefOf\(service\)\}/);
+});
+
+test('los mensajes usan solo el primer nombre', () => {
+  assert.match(page, /const firstName = \(name\?: string \| null\) =>/);
+  assert.match(page, /\$\{firstName\(profile\?\.name\)\} asignó a \$\{assignedName\}/);
+});
+
+test('el título de la push nombra al servicio', () => {
+  assert.match(page, /title: service\s*\?\s*`\$\{SERVICE_DAY\[service\.type\]\} — \$\{SERVICE_LABELS\[service\.type\]\}`\s*:\s*'Renuevo Music'/);
+});
+
 test('los servicios de sábado y domingo se desambiguan con su etiqueta', () => {
   assert.match(page, /function serviceRefOf\(/);
   assert.match(page, /svc\.type === 'jueves'\s*\?\s*'jueves'/);
